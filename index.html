@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#101416">
-  <meta name="description" content="Costa Construction OS Prototype v0.1 — a browser-local, synthetic-data prototype of invoice intake, exception management, approval workflow and executive monitoring.">
+  <meta name="description" content="Costa Construction OS Prototype v0.1 — a browser-local invoice intake, exception management, approval workflow and executive monitoring tool.">
   <title>Costa Construction OS — Prototype v0.1</title>
   <style>
     :root {
@@ -428,7 +428,7 @@
 
   <div class="prototype-banner" role="note">
     <span class="dot" aria-hidden="true"></span>
-    <p><strong>Prototype only.</strong> Data is saved in this browser and is not shared with Jack, Alex, Google Drive, or a company system. Export the session to share it. All records are synthetic samples or entries you type yourself — there is no authentication, no live company data, no document processing, no AI model, no accounting integration, and no payment execution.</p>
+    <p><strong>Prototype only.</strong> Data is saved in this browser and is not shared with Jack, Alex, Google Drive, or a company system. Export the session to share it. The app starts empty and shows only records you enter — there is no authentication, shared monitoring, document processing, AI model, accounting integration, or payment execution.</p>
   </div>
 
   <div class="app-shell">
@@ -473,7 +473,7 @@
             <div>
               <span class="eyebrow">Executive monitoring · <span id="today-label"></span></span>
               <h1 id="dashboard-title">See the business before it surprises you.</h1>
-              <p>Invoice exposure, approval bottlenecks, exceptions and project risk in one view — computed from the synthetic records in this browser.</p>
+              <p>Invoice exposure, approval bottlenecks, exceptions and project risk in one view — computed only from invoices entered in this browser.</p>
             </div>
             <div class="actions">
               <button class="btn btn-secondary" data-go="session">Export session</button>
@@ -524,9 +524,8 @@
             <div>
               <span class="eyebrow">WF-001 · Step 1 · Capture</span>
               <h1 id="intake-title">Register a complete invoice record.</h1>
-              <p>Create a synthetic invoice and watch the canonical validation checks and exceptions that COS-04 requires. Nothing here is uploaded or analysed.</p>
+              <p>Enter an actual invoice record and move it through the prototype workflow. Nothing is uploaded or analysed.</p>
             </div>
-            <div class="actions"><button class="btn btn-secondary" id="load-example" type="button">Load sample values</button></div>
           </div>
 
           <div class="banner warn">
@@ -543,9 +542,9 @@
                 <section class="card card-pad" aria-labelledby="inv-core-h">
                   <div class="card-title"><div><h2 id="inv-core-h">Invoice record</h2><p>Fields marked * are required by COS-04 "Required invoice information".</p></div></div>
                   <div class="form-grid">
-                    <div class="field span-6"><label for="f-vendor">Vendor <span class="req" aria-hidden="true">*</span></label><input class="input" id="f-vendor" name="vendor" required placeholder="Sample vendor name"><span class="helper">Vendor master is not configured in this prototype.</span></div>
-                    <div class="field span-6"><label for="f-project">Project <span class="req" aria-hidden="true">*</span></label><select class="input" id="f-project" name="project" required></select><span class="helper">Sample projects only.</span></div>
-                    <div class="field span-6"><label for="f-number">Invoice number <span class="req" aria-hidden="true">*</span></label><input class="input" id="f-number" name="invoiceNumber" required placeholder="e.g. SAMPLE-1042"></div>
+                    <div class="field span-6"><label for="f-vendor">Vendor <span class="req" aria-hidden="true">*</span></label><input class="input" id="f-vendor" name="vendor" required placeholder="Vendor name"><span class="helper">Vendor master is not connected in this prototype.</span></div>
+                    <div class="field span-6"><label for="f-project">Project <span class="req" aria-hidden="true">*</span></label><input class="input" id="f-project" name="project" required placeholder="Project name or number"><span class="helper">Enter the project exactly as Costa identifies it.</span></div>
+                    <div class="field span-6"><label for="f-number">Invoice number <span class="req" aria-hidden="true">*</span></label><input class="input" id="f-number" name="invoiceNumber" required placeholder="Invoice number"></div>
                     <div class="field span-6"><label for="f-type">Invoice type <span class="req" aria-hidden="true">*</span></label><select class="input" id="f-type" name="invoiceType" required></select></div>
                     <div class="field span-3"><label for="f-amount">Net amount payable <span class="req" aria-hidden="true">*</span></label><input class="input" id="f-amount" name="amountNet" required type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00"></div>
                     <div class="field span-3"><label for="f-gross">Gross amount</label><input class="input" id="f-gross" name="amountGross" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Optional"></div>
@@ -555,9 +554,9 @@
                     <div class="field span-4"><label for="f-invoice-date">Invoice date <span class="req" aria-hidden="true">*</span></label><input class="input" id="f-invoice-date" name="invoiceDate" required type="date"></div>
                     <div class="field span-4"><label for="f-received-date">Received date <span class="req" aria-hidden="true">*</span></label><input class="input" id="f-received-date" name="receivedDate" required type="date"></div>
                     <div class="field span-4"><label for="f-due-date">Due date <span class="req" aria-hidden="true">*</span></label><input class="input" id="f-due-date" name="dueDate" required type="date"><span class="helper">Payment terms are not configured; the due date is taken as entered.</span></div>
-                    <div class="field span-6"><label for="f-commitment">PO, contract or commitment reference</label><input class="input" id="f-commitment" name="commitmentRef" placeholder="e.g. SAMPLE-PO-221"><span class="helper">Leave blank to see exception EX-01 raised.</span></div>
+                    <div class="field span-6"><label for="f-commitment">PO, contract or commitment reference</label><input class="input" id="f-commitment" name="commitmentRef" placeholder="PO or contract reference"><span class="helper">Leave blank to see exception EX-01 raised.</span></div>
                     <div class="field span-6"><label for="f-costcode">Cost code</label><input class="input" id="f-costcode" name="costCode" placeholder="e.g. 26 05 00"><span class="helper">Leave blank to see exception EX-02 raised.</span></div>
-                    <div class="field span-6"><label for="f-co">Change order reference</label><input class="input" id="f-co" name="changeOrderRef" placeholder="Optional — e.g. SAMPLE-CO-17"></div>
+                    <div class="field span-6"><label for="f-co">Change order reference</label><input class="input" id="f-co" name="changeOrderRef" placeholder="Optional change order reference"></div>
                     <div class="field span-6"><label for="f-approver">Project approver <span class="req" aria-hidden="true">*</span></label><select class="input" id="f-approver" name="approverActorId" required></select></div>
                     <div class="field span-12"><label for="f-description">Description of work or materials</label><textarea class="input" id="f-description" name="description" placeholder="What labour, materials, period or milestone does this invoice cover?"></textarea></div>
                   </div>
@@ -792,9 +791,9 @@
               </section>
 
               <section class="card card-pad" aria-labelledby="reset-h">
-                <div class="card-title"><div><h2 id="reset-h">Reset</h2><p>Restores the original synthetic sample data</p></div></div>
-                <p class="small muted" style="margin:0 0 11px">This permanently discards every invoice, decision, comment, audit event, priority and feedback entry saved in this browser and reloads the built-in sample set.</p>
-                <button class="btn btn-danger" id="reset-btn" type="button">Reset to sample data</button>
+                <div class="card-title"><div><h2 id="reset-h">Start a clean session</h2><p>Removes everything entered in this browser</p></div></div>
+                <p class="small muted" style="margin:0 0 11px">This permanently discards every invoice, decision, comment, audit event, priority and feedback entry saved in this browser. The app will restart empty.</p>
+                <button class="btn btn-danger" id="reset-btn" type="button">Erase session and start empty</button>
               </section>
             </div>
 
@@ -891,9 +890,9 @@
     ===================================================================== */
 
     const APP_ID = 'costa-construction-os';
-    const SCHEMA_VERSION = 2;
-    const STORAGE_KEY = 'costa-construction-os.v2';
-    const LEGACY_KEYS = ['costaConstructionOS.v1'];
+    const SCHEMA_VERSION = 3;
+    const STORAGE_KEY = 'costa-construction-os.v3';
+    const LEGACY_KEYS = ['costa-construction-os.v2', 'costaConstructionOS.v1'];
     const UNKNOWN = 'Not configured';
 
     /* ---------------- Canonical lifecycle (COS-04) ---------------- */
@@ -939,18 +938,17 @@
       auditor:      { name:'Auditor (read only)',     dept:'D-10 Technology & Data' }
     };
 
-    /* Prototype personas. Deliberately generic: COS-02 leaves every named role
-       an open decision, so no Costa employee is invented. Alex is the one real
-       person named in the brief, labelled exactly as the brief requires. */
+    /* Role-testing modes. They are not people, employee records or authentication.
+       Alex can switch modes to test every stage of the workflow. */
     const ACTORS = [
       { id:'alex',  name:'Alex Costa',            title:'Pilot Product Owner / Executive Test User', roles:['exec','auditor'], note:'Actual role and authority to validate' },
-      { id:'ap1',   name:'Sample AP Coordinator', title:'AP Coordinator (sample persona)',           roles:['ap'] },
-      { id:'pm1',   name:'Sample Project Manager',title:'Project Manager (sample persona)',          roles:['pm'] },
-      { id:'px1',   name:'Sample Project Executive', title:'Project Executive (sample persona)',     roles:['px','pm'] },
-      { id:'ctl1',  name:'Sample Controller',     title:'Controller (sample persona)',               roles:['controller','payments'] },
-      { id:'vm1',   name:'Sample Vendor Master Owner', title:'Vendor Master Owner (sample persona)', roles:['vendorMaster'] },
-      { id:'ctr1',  name:'Sample Contracts Manager', title:'Contracts Manager (sample persona)',      roles:['contracts'] },
-      { id:'aud1',  name:'Sample Auditor',        title:'Auditor (sample persona) — read only',      roles:['auditor'] }
+      { id:'ap1',   name:'AP Coordinator role',   title:'Test role — not a named employee',           roles:['ap'] },
+      { id:'pm1',   name:'Project Manager role',  title:'Test role — not a named employee',           roles:['pm'] },
+      { id:'px1',   name:'Project Executive role', title:'Test role — not a named employee',          roles:['px','pm'] },
+      { id:'ctl1',  name:'Controller role',       title:'Test role — not a named employee',           roles:['controller','payments'] },
+      { id:'vm1',   name:'Vendor Master Owner role', title:'Test role — not a named employee',        roles:['vendorMaster'] },
+      { id:'ctr1',  name:'Contracts Manager role', title:'Test role — not a named employee',          roles:['contracts'] },
+      { id:'aud1',  name:'Auditor role',          title:'Test role — read only, not a named employee', roles:['auditor'] }
     ];
     const actorById = id => ACTORS.find(a => a.id === id) || ACTORS[0];
     const actorLabel = id => { const a = actorById(id); return a.name + ' — ' + a.title; };
@@ -1062,13 +1060,8 @@
       { activity:'Permissions',               human:'Technology / Data Lead',                         ai:'Detect incompatible roles',                     never:'Grant its own access or modify roles' }
     ];
 
-    /* ---------------- Sample projects (synthetic) ---------------- */
-    const PROJECTS = [
-      { id:'SP-01', name:'SAMPLE — Harbor Point Residences' },
-      { id:'SP-02', name:'SAMPLE — Riverside Medical Center' },
-      { id:'SP-03', name:'SAMPLE — Oak Street Offices' },
-      { id:'SP-04', name:'SAMPLE — Central Yard Improvements' }
-    ];
+    /* Projects are entered by the user on each invoice. Nothing is preloaded. */
+    const PROJECTS = [];
 
     /* ---------------- Small helpers ---------------- */
     const $  = s => document.querySelector(s);
@@ -1113,17 +1106,14 @@
       correlationId: opts.correlationId || null
     });
 
-    /* ============================ SAMPLE DATA ============================
-       Every record below is synthetic and is labelled SAMPLE in the UI.
-       No Costa vendor, project, employee, amount or threshold is real.
-    ==================================================================== */
+    /* ============================ USER DATA ============================ */
     function mkInvoice(o) {
       return Object.assign({
         id:'', invoiceNumber:'', vendor:'', invoiceType:'po_goods',
-        projectId:'SP-01', costCode:'', commitmentRef:'', changeOrderRef:'',
+        projectId:'', costCode:'', commitmentRef:'', changeOrderRef:'',
         amountNet:0, amountGross:null, taxAmount:null, retainageAmount:null,
         invoiceDate:'', receivedDate:'', dueDate:'', description:'',
-        approverActorId:'pm1', createdBy:'ap1', createdAt:nowIso(), source:'sample',
+        approverActorId:'pm1', createdBy:'alex', createdAt:nowIso(), source:'user',
         declarations:{}, attachments:[], commitmentSnapshot:null, budgetSnapshot:null,
         status:'validation', previousStage:'validation', exceptions:[], comments:[], history:[],
         payment:{ status:'Not scheduled', scheduledDate:null, paidDate:null, reference:null },
@@ -1146,224 +1136,21 @@
     };
 
     function seedState() {
-      const inv = [];
-
-      inv.push(mkInvoice({
-        id:'INV-SAMPLE-0001', invoiceNumber:'SAMPLE-SFS-11308', vendor:'SAMPLE — Summit Fire Systems',
-        invoiceType:'subcontract', projectId:'SP-01', costCode:'21 13 00', commitmentRef:'SAMPLE-SC-188',
-        amountNet:68900, amountGross:72526, taxAmount:0, retainageAmount:3626,
-        invoiceDate:dayOffset(-26), receivedDate:dayOffset(-24), dueDate:dayOffset(4),
-        description:'Fire suppression progress billing #7 — floors 1 to 6.',
-        declarations:decl({ invoiceDocument:true, receiptConfirmed:true, progressEvidence:true, lienWaiver:true, insuranceCurrent:true }),
-        commitmentSnapshot:{ source:'SAMPLE-SC-188', approved:940000, billedToDate:602000, asOf:dayOffset(-2) },
-        budgetSnapshot:{ line:'21 13 00 Fire suppression', budget:985000, committed:940000, asOf:dayOffset(-2) },
-        status:'project_approval', previousStage:'validation', approverActorId:'pm1',
-        history:[
-          mkEvent('document','invoice.received','Progress billing captured through authenticated manual upload (prototype: entered by hand).','ap1',{ at:isoAgo(24), to:'received' }),
-          mkEvent('workflow','invoice.registered','Unique record ID and receipt timestamp assigned.','ap1',{ at:isoAgo(24), from:'received', to:'registered' }),
-          mkEvent('data','extraction.skipped','No document was processed. All fields were entered by a human.','ap1',{ at:isoAgo(23), from:'registered', to:'extraction_review' }),
-          mkEvent('data','validation.completed','All configured checks executed. No exception raised.','ap1',{ at:isoAgo(23), from:'extraction_review', to:'validation' }),
-          mkEvent('workflow','state.changed','Routed to project approval for work and percent-complete verification.','ap1',{ at:isoAgo(9), from:'validation', to:'project_approval' })
-        ]
-      }));
-
-      inv.push(mkInvoice({
-        id:'INV-SAMPLE-0002', invoiceNumber:'SAMPLE-RM-77814', vendor:'SAMPLE — Metro Ready Mix',
-        invoiceType:'po_goods', projectId:'SP-02', costCode:'03 30 00', commitmentRef:'SAMPLE-PO-095',
-        amountNet:12480, invoiceDate:dayOffset(-23), receivedDate:dayOffset(-21), dueDate:dayOffset(-3),
-        description:'Concrete delivery — east wing slab pours 4 and 5.',
-        declarations:decl({ invoiceDocument:true }),
-        commitmentSnapshot:{ source:'SAMPLE-PO-095', approved:40000, billedToDate:30300, asOf:dayOffset(-2) },
-        status:'exception_review', previousStage:'validation', approverActorId:'pm1',
-        exceptions:[
-          mkEx('EX-04','Billing $12,480 against SAMPLE-PO-095 exceeds the remaining commitment of $9,700 by $2,780.', { openedAt:isoAgo(19) }),
-          mkEx('PX-01','Delivery ticket 8814 is referenced on the invoice but receipt has not been confirmed by the project.', { openedAt:isoAgo(19) })
-        ],
-        history:[
-          mkEvent('document','invoice.received','Vendor invoice captured.','ap1',{ at:isoAgo(21), to:'received' }),
-          mkEvent('workflow','invoice.registered','Record registered.','ap1',{ at:isoAgo(21), from:'received', to:'registered' }),
-          mkEvent('data','extraction.skipped','No document was processed. All fields were entered by a human.','ap1',{ at:isoAgo(20), from:'registered', to:'extraction_review' }),
-          mkEvent('data','validation.completed','Commitment balance and receipt evidence checks failed.','ap1',{ at:isoAgo(19), from:'extraction_review', to:'validation' }),
-          mkEvent('workflow','exception.opened','EX-04 and PX-01 opened. Approval is blocked.','ap1',{ at:isoAgo(19), from:'validation', to:'exception_review' })
-        ]
-      }));
-
-      inv.push(mkInvoice({
-        id:'INV-SAMPLE-0003', invoiceNumber:'SAMPLE-TP-00941', vendor:'SAMPLE — Turner Plumbing',
-        invoiceType:'po_goods', projectId:'SP-03', costCode:'22 10 00', commitmentRef:'SAMPLE-PO-044',
-        amountNet:8320, invoiceDate:dayOffset(-12), receivedDate:dayOffset(-11), dueDate:dayOffset(10),
-        description:'Domestic water riser materials — release 2.',
-        declarations:decl({ invoiceDocument:true, receiptConfirmed:true }),
-        commitmentSnapshot:{ source:'SAMPLE-PO-044', approved:65000, billedToDate:21400, asOf:dayOffset(-2) },
-        status:'scheduled_for_payment', previousStage:'approved', approverActorId:'pm1',
-        payment:{ status:'Scheduled', scheduledDate:dayOffset(6), paidDate:null, reference:'Prototype record only — no payment exists' },
-        history:[
-          mkEvent('document','invoice.received','Vendor invoice captured.','ap1',{ at:isoAgo(11), to:'received' }),
-          mkEvent('workflow','invoice.registered','Record registered.','ap1',{ at:isoAgo(11), from:'received', to:'registered' }),
-          mkEvent('data','extraction.skipped','No document was processed. All fields were entered by a human.','ap1',{ at:isoAgo(10), from:'registered', to:'extraction_review' }),
-          mkEvent('data','validation.completed','All checks passed.','ap1',{ at:isoAgo(10), from:'extraction_review', to:'validation' }),
-          mkEvent('decision','approval.approved','Materials received and installed; quantities verified against the delivery record.','pm1',{ at:isoAgo(7), from:'validation', to:'project_approval' }),
-          mkEvent('decision','approval.approved','Commitment and coding verified. Within remaining commitment.','ctl1',{ at:isoAgo(5), from:'project_approval', to:'financial_approval' }),
-          mkEvent('workflow','state.changed','All required human approvals complete; no blocking exception.','ctl1',{ at:isoAgo(5), from:'financial_approval', to:'approved' }),
-          mkEvent('integration','payment_status.received','Accepted by the separate payment-scheduling process. Payment release remains outside this workflow.','ctl1',{ at:isoAgo(2), from:'approved', to:'scheduled_for_payment' })
-        ]
-      }));
-
-      inv.push(mkInvoice({
-        id:'INV-SAMPLE-0004', invoiceNumber:'SAMPLE-NES-3308', vendor:'SAMPLE — North Equipment Services',
-        invoiceType:'non_po', projectId:'SP-04', costCode:'', commitmentRef:'',
-        amountNet:4275, invoiceDate:dayOffset(-6), receivedDate:dayOffset(-4), dueDate:dayOffset(21),
-        description:'Excavator rental — week 28.',
-        declarations:decl({ invoiceDocument:true, receiptConfirmed:true }),
-        status:'exception_review', previousStage:'validation', approverActorId:'pm1',
-        exceptions:[
-          mkEx('EX-01','No PO, contract or commitment reference was supplied, and permitted non-PO categories are not configured.', { openedAt:isoAgo(4) }),
-          mkEx('EX-02','No cost code was supplied, so the invoice cannot be coded to a budget line.', { openedAt:isoAgo(4) })
-        ],
-        history:[
-          mkEvent('document','invoice.received','Vendor invoice captured.','ap1',{ at:isoAgo(4), to:'received' }),
-          mkEvent('workflow','invoice.registered','Record registered.','ap1',{ at:isoAgo(4), from:'received', to:'registered' }),
-          mkEvent('data','extraction.skipped','No document was processed. All fields were entered by a human.','ap1',{ at:isoAgo(4), from:'registered', to:'extraction_review' }),
-          mkEvent('data','validation.completed','Commitment and cost-code checks failed.','ap1',{ at:isoAgo(4), from:'extraction_review', to:'validation' }),
-          mkEvent('workflow','exception.opened','EX-01 and EX-02 opened.','ap1',{ at:isoAgo(4), from:'validation', to:'exception_review' })
-        ]
-      }));
-
-      inv.push(mkInvoice({
-        id:'INV-SAMPLE-0005', invoiceNumber:'SAMPLE-AE-10482', vendor:'SAMPLE — Apex Electrical',
-        invoiceType:'subcontract', projectId:'SP-01', costCode:'26 05 00', commitmentRef:'SAMPLE-SC-022',
-        changeOrderRef:'SAMPLE-CO-17', amountNet:48200,
-        invoiceDate:dayOffset(-18), receivedDate:dayOffset(-16), dueDate:dayOffset(7),
-        description:'Electrical rough-in floors 4 to 6, including change-order work.',
-        declarations:decl({ invoiceDocument:true, receiptConfirmed:true, progressEvidence:true, lienWaiver:true, insuranceCurrent:true, changeOrderApproved:false }),
-        commitmentSnapshot:{ source:'SAMPLE-SC-022', approved:260000, billedToDate:220000, asOf:dayOffset(-2) },
-        budgetSnapshot:{ line:'26 05 00 Electrical', budget:268000, committed:260000, asOf:dayOffset(-2) },
-        status:'exception_review', previousStage:'validation', approverActorId:'pm1',
-        exceptions:[
-          mkEx('EX-04','Billing $48,200 exceeds the remaining commitment on SAMPLE-SC-022 of $40,000 by $8,200.', { openedAt:isoAgo(14) }),
-          mkEx('EX-05','The invoice bills SAMPLE-CO-17, which is not declared as an approved change order.', { openedAt:isoAgo(14) })
-        ],
-        comments:[{ id:'c-s1', actorId:'ctl1', actorLabel:actorLabel('ctl1'), text:'Project verification is complete. The commitment and change-order questions have to close before this can route to financial approval.', at:isoAgo(2) }],
-        history:[
-          mkEvent('document','invoice.received','Vendor invoice captured.','ap1',{ at:isoAgo(16), to:'received' }),
-          mkEvent('workflow','invoice.registered','Record registered.','ap1',{ at:isoAgo(16), from:'received', to:'registered' }),
-          mkEvent('data','extraction.skipped','No document was processed. All fields were entered by a human.','ap1',{ at:isoAgo(15), from:'registered', to:'extraction_review' }),
-          mkEvent('data','validation.completed','Commitment balance and change-order checks failed.','ap1',{ at:isoAgo(14), from:'extraction_review', to:'validation' }),
-          mkEvent('workflow','exception.opened','EX-04 and EX-05 opened. Approval is blocked.','ap1',{ at:isoAgo(14), from:'validation', to:'exception_review' })
-        ]
-      }));
-
-      inv.push(mkInvoice({
-        id:'INV-SAMPLE-0006', invoiceNumber:'SAMPLE-BWS-55891', vendor:'SAMPLE — Beacon Waste Services',
-        invoiceType:'service', projectId:'SP-02', costCode:'01 74 19', commitmentRef:'SAMPLE-PO-012',
-        amountNet:3980, invoiceDate:dayOffset(-38), receivedDate:dayOffset(-37), dueDate:dayOffset(-9),
-        description:'Waste hauling — monthly service.',
-        declarations:decl({ invoiceDocument:true, receiptConfirmed:true, serviceEvidence:true }),
-        commitmentSnapshot:{ source:'SAMPLE-PO-012', approved:48000, billedToDate:19900, asOf:dayOffset(-2) },
-        status:'paid', previousStage:'scheduled_for_payment', approverActorId:'pm1',
-        payment:{ status:'Paid', scheduledDate:dayOffset(-12), paidDate:dayOffset(-6), reference:'SAMPLE-PMT-4471 (prototype record only)' },
-        history:[
-          mkEvent('document','invoice.received','Vendor invoice captured.','ap1',{ at:isoAgo(37), to:'received' }),
-          mkEvent('workflow','invoice.registered','Record registered.','ap1',{ at:isoAgo(37), from:'received', to:'registered' }),
-          mkEvent('data','extraction.skipped','No document was processed. All fields were entered by a human.','ap1',{ at:isoAgo(36), from:'registered', to:'extraction_review' }),
-          mkEvent('data','validation.completed','All checks passed.','ap1',{ at:isoAgo(36), from:'extraction_review', to:'validation' }),
-          mkEvent('decision','approval.approved','Service performed and verified against the monthly report.','pm1',{ at:isoAgo(30), from:'validation', to:'project_approval' }),
-          mkEvent('decision','approval.approved','Coding and commitment verified.','ctl1',{ at:isoAgo(26), from:'project_approval', to:'financial_approval' }),
-          mkEvent('workflow','state.changed','Approved. No blocking exception.','ctl1',{ at:isoAgo(26), from:'financial_approval', to:'approved' }),
-          mkEvent('integration','payment_status.received','Accepted by the separate payment-scheduling process.','ctl1',{ at:isoAgo(14), from:'approved', to:'scheduled_for_payment' }),
-          mkEvent('integration','payment_status.received','Downstream process reported payment. Reference recorded.','ctl1',{ at:isoAgo(6), from:'scheduled_for_payment', to:'paid' })
-        ]
-      }));
-
-      inv.push(mkInvoice({
-        id:'INV-SAMPLE-0007', invoiceNumber:'SAMPLE-TP-00941', vendor:'SAMPLE — Turner Plumbing',
-        invoiceType:'po_goods', projectId:'SP-03', costCode:'22 10 00', commitmentRef:'SAMPLE-PO-044',
-        amountNet:8320, invoiceDate:dayOffset(-12), receivedDate:dayOffset(-2), dueDate:dayOffset(10),
-        description:'Domestic water riser materials — resubmitted by the vendor.',
-        declarations:decl({ invoiceDocument:true }),
-        status:'exception_review', previousStage:'validation', approverActorId:'pm1',
-        exceptions:[
-          mkEx('EX-03','Vendor, invoice number and amount match INV-SAMPLE-0003, which is already scheduled for payment. Quarantined pending comparison.', { openedAt:isoAgo(2) }),
-          mkEx('PX-01','Receipt or work confirmation has not been declared for this record.', { openedAt:isoAgo(2) })
-        ],
-        history:[
-          mkEvent('document','invoice.received','Vendor invoice captured.','ap1',{ at:isoAgo(2), to:'received' }),
-          mkEvent('workflow','invoice.registered','Record registered; duplicate fingerprint calculated.','ap1',{ at:isoAgo(2), from:'received', to:'registered' }),
-          mkEvent('data','extraction.skipped','No document was processed. All fields were entered by a human.','ap1',{ at:isoAgo(2), from:'registered', to:'extraction_review' }),
-          mkEvent('data','validation.completed','Duplicate check failed against INV-SAMPLE-0003.','ap1',{ at:isoAgo(2), from:'extraction_review', to:'validation' }),
-          mkEvent('workflow','exception.opened','EX-03 opened and the record was quarantined before routing.','ap1',{ at:isoAgo(2), from:'validation', to:'exception_review' })
-        ]
-      }));
-
-      inv.push(mkInvoice({
-        id:'INV-SAMPLE-0008', invoiceNumber:'SAMPLE-CSF-20881', vendor:'SAMPLE — Coastal Steel Fabricators',
-        invoiceType:'subcontract', projectId:'SP-03', costCode:'05 12 00', commitmentRef:'SAMPLE-SC-245',
-        amountNet:22400, invoiceDate:dayOffset(-9), receivedDate:dayOffset(-8), dueDate:dayOffset(12),
-        description:'Structural steel connection materials — release 3.',
-        declarations:decl({ invoiceDocument:true, receiptConfirmed:true, progressEvidence:true, lienWaiver:true, insuranceCurrent:true, bankingChangeRequested:true }),
-        commitmentSnapshot:{ source:'SAMPLE-SC-245', approved:410000, billedToDate:180000, asOf:dayOffset(-2) },
-        status:'on_hold', previousStage:'project_approval', approverActorId:'pm1',
-        exceptions:[
-          mkEx('EX-10','The vendor submitted a change of bank details with this invoice. Approval is blocked until an independent human verifies the change out of band using a previously known contact, and a second human approves.', { openedAt:isoAgo(7), openedBy:'ap1' })
-        ],
-        history:[
-          mkEvent('document','invoice.received','Vendor invoice captured.','ap1',{ at:isoAgo(8), to:'received' }),
-          mkEvent('workflow','invoice.registered','Record registered.','ap1',{ at:isoAgo(8), from:'received', to:'registered' }),
-          mkEvent('data','extraction.skipped','No document was processed. All fields were entered by a human.','ap1',{ at:isoAgo(8), from:'registered', to:'extraction_review' }),
-          mkEvent('data','validation.completed','Banking-change control fired.','ap1',{ at:isoAgo(7), from:'extraction_review', to:'validation' }),
-          mkEvent('workflow','exception.opened','EX-10 opened. Approval blocked pending out-of-band verification.','ap1',{ at:isoAgo(7), from:'validation', to:'exception_review' }),
-          mkEvent('decision','approval.held','Held pending vendor identity verification by the Vendor Master Owner.','ctl1',{ at:isoAgo(6), from:'exception_review', to:'on_hold' })
-        ]
-      }));
-
-      inv.push(mkInvoice({
-        id:'INV-SAMPLE-0009', invoiceNumber:'SAMPLE-GLC-7742', vendor:'SAMPLE — Granite Landscape Co.',
-        invoiceType:'service', projectId:'SP-04', costCode:'32 90 00', commitmentRef:'SAMPLE-PO-311',
-        amountNet:15650, invoiceDate:dayOffset(-34), receivedDate:dayOffset(-31), dueDate:dayOffset(-4),
-        description:'Site restoration and planting — phase 1.',
-        declarations:decl({ invoiceDocument:true, receiptConfirmed:true, serviceEvidence:true }),
-        commitmentSnapshot:{ source:'SAMPLE-PO-311', approved:90000, billedToDate:41000, asOf:dayOffset(-2) },
-        status:'financial_approval', previousStage:'project_approval', approverActorId:'pm1',
-        exceptions:[ mkEx('EX-13','The invoice was received after its stated due date, so the period and cash impact need to be assessed.', { openedAt:isoAgo(31) }) ],
-        history:[
-          mkEvent('document','invoice.received','Vendor invoice captured.','ap1',{ at:isoAgo(31), to:'received' }),
-          mkEvent('workflow','invoice.registered','Record registered.','ap1',{ at:isoAgo(31), from:'received', to:'registered' }),
-          mkEvent('data','extraction.skipped','No document was processed. All fields were entered by a human.','ap1',{ at:isoAgo(31), from:'registered', to:'extraction_review' }),
-          mkEvent('data','validation.completed','Late-invoice check failed; all other checks passed.','ap1',{ at:isoAgo(31), from:'extraction_review', to:'validation' }),
-          mkEvent('decision','approval.approved','Work verified on site against the phase 1 plan.','pm1',{ at:isoAgo(12), from:'validation', to:'project_approval' }),
-          mkEvent('workflow','state.changed','Routed to financial approval.','pm1',{ at:isoAgo(12), from:'project_approval', to:'financial_approval' })
-        ]
-      }));
-
       return {
         schemaVersion: SCHEMA_VERSION,
         createdAt: nowIso(),
         savedAt: nowIso(),
         actorId: 'alex',
         config: {
-          executiveApproval: { enabled:false, threshold:null, note:'COS-02 records this as ALEX DECISION REQUIRED. Nothing has been configured.' }
+          executiveApproval: { enabled:false, threshold:null, note:'No approval threshold has been configured.' }
         },
-        invoices: inv,
-        priorities: [
-          { id:'p1', title:'Validate the invoice approval workflow', outcome:'Alex has walked every stage, exception and required-evidence rule and marked each one correct or wrong.', owner:'Alex Costa', priority:'Critical', status:'Now', progress:20, openDecision:'Does the canonical 12-state lifecycle match how invoices really move?' },
-          { id:'p2', title:'Set the approval authority matrix', outcome:'Named approvers and dollar tiers exist for invoices, POs, contracts and change orders, with effective dates.', owner:'Alex Costa + Jack Burke', priority:'Critical', status:'Now', progress:0, openDecision:'COS-02: every threshold is still ALEX DECISION REQUIRED.' },
-          { id:'p3', title:'Answer COS-08 Section A', outcome:'All 18 Section A questions are answered so the MVP design can be frozen.', owner:'Alex Costa', priority:'Critical', status:'Now', progress:0, openDecision:'Book the 60 to 90 minute working session.' },
-          { id:'p4', title:'Collect real invoice examples', outcome:'100+ de-identified invoices with linked POs, contracts, budgets, change orders and evidence.', owner:'Alex Costa', priority:'High', status:'Next', progress:0, openDecision:'Who can de-identify them, and where do they live?' },
-          { id:'p5', title:'Confirm the organization model', outcome:'D-01 to D-10 are corrected to Costa reality, with a named accountable human per department.', owner:'Alex Costa', priority:'High', status:'Next', progress:10, openDecision:'Which departments are combined in one person today?' },
-          { id:'p6', title:'Choose the shared pilot backend', outcome:'An authenticated, shared, audited system replaces browser-local storage.', owner:'Jack Burke', priority:'High', status:'Next', progress:0, openDecision:'Hosting boundary and identity provider are unresolved in COS-06.' },
-          { id:'p7', title:'Accounting and PM platform discovery', outcome:'Current platforms, versions, access, export and API boundaries are documented.', owner:'Jack Burke + Alex Costa', priority:'Medium', status:'Later', progress:0, openDecision:'COS-08 questions 7 and 8.' },
-          { id:'p8', title:'Agree the document retention schedule', outcome:'Counsel and the Controller approve a retention class per document type.', owner:'Controller + counsel', priority:'Medium', status:'Later', progress:0, openDecision:'COS-06 leaves retention classes open; no universal period may be invented.' }
-        ],
-        feedback: [
-          { id:'f1', at:isoAgo(1), actorId:'alex', invoiceId:'INV-SAMPLE-0002', area:'Exceptions and evidence',
-            makesSense:'Sample entry. Blocking the approval until the delivery ticket is confirmed matches how we would want it to work.',
-            missing:'Sample entry. Nothing here says who chases the vendor for the missing ticket.',
-            mismatch:'', avaShouldKnow:'', wrongRule:'', rating:3 }
-        ]
+        invoices: [],
+        priorities: [],
+        feedback: []
       };
     }
 
-    /* ==================== NORMALIZATION (v2 compatible) ====================
+    /* ==================== NORMALIZATION (v3 compatible) ====================
        Restores canonical control metadata onto every loaded or imported
        exception from its code, and guarantees the shapes the app relies on.
        User-authored content — detail text, status, who opened or resolved it,
@@ -1471,7 +1258,7 @@
         try {
           for (const k of LEGACY_KEYS) {
             if (localStorage.getItem(k)) {
-              storageNote = 'A session from an earlier prototype schema was found and left untouched. This build started from fresh sample data because the record structure changed.';
+              storageNote = 'Older prototype data was found and left untouched. This version started with a clean empty session so no demo records appear.';
               break;
             }
           }
@@ -1482,11 +1269,11 @@
         const parsed = JSON.parse(raw);
         const data = parsed && parsed.data ? parsed.data : parsed;
         if (!data || parsed.schemaVersion !== SCHEMA_VERSION || data.schemaVersion !== SCHEMA_VERSION) {
-          storageNote = 'The stored session used schema version ' + (parsed.schemaVersion || data.schemaVersion || 'unknown') + ' and this build expects ' + SCHEMA_VERSION + '. Sample data was loaded instead. The old value was not deleted.';
+          storageNote = 'The stored session used schema version ' + (parsed.schemaVersion || data.schemaVersion || 'unknown') + ' and this build expects ' + SCHEMA_VERSION + '. A clean empty session was started. The old value was not deleted.';
           return seedState();
         }
         if (!Array.isArray(data.invoices) || !Array.isArray(data.priorities) || !Array.isArray(data.feedback)) {
-          storageNote = 'The stored session was missing required collections, so sample data was loaded instead.';
+          storageNote = 'The stored session was missing required collections, so a clean empty session was started.';
           return seedState();
         }
         const normalized = normalizeState(data);
@@ -1494,7 +1281,7 @@
         if (note) storageNote = note;
         return normalized;
       } catch (err) {
-        storageNote = 'The stored session could not be parsed, so sample data was loaded instead.';
+        storageNote = 'The stored session could not be parsed, so a clean empty session was started.';
         return seedState();
       }
     }
@@ -1550,7 +1337,7 @@
         add('VC-03','Contract, PO or commitment',
           inv.commitmentRef ? PASS : FAIL,
           inv.commitmentRef
-            ? 'Reference ' + inv.commitmentRef + ' recorded. Its approved status and authorized value are only known where a sample commitment snapshot exists.'
+            ? 'Reference ' + inv.commitmentRef + ' recorded. Its approved status and authorized value are not connected or independently verified.'
             : 'No PO, contract or commitment reference supplied. ' + type.label + ' requires ' + type.match + '.', 'EX-01');
       }
 
@@ -1862,7 +1649,7 @@
        uncertainty or claim a live integration. Output here is produced by the
        rules in this file, running over the records in this browser.
     ==================================================================== */
-    const AVA_BASIS = 'Deterministic rules in this browser, run over the synthetic records you can see. No AI model, no external data, no document analysis.';
+    const AVA_BASIS = 'Deterministic rules in this browser, run only over records entered here. No AI model, external data, or document analysis.';
 
     function avaForInvoice(inv) {
       const checks = runChecks(inv, state.invoices);
@@ -1950,7 +1737,7 @@
       if (!why.length) why.push('Nothing in the current records indicates cash, control or schedule risk.');
 
       const evidence = [
-        plural(invs.length,'synthetic invoice record') + ' held in this browser, ' + open.length + ' still open.',
+        plural(invs.length,'invoice record') + ' entered in this browser, ' + open.length + ' still open.',
         plural(exCount,'open exception') + ' across ' + plural(new Set(allOpenExceptions().map(e => e.invoice.id)).size,'record') + ', typed against the COS-04 exception catalog.',
         plural(invs.reduce((a, i) => a + (i.history || []).length, 0),'audit event') + ' recorded locally.',
         'Validation-rule results computed from the fields on each record. No external system, no document and no model was consulted.'
@@ -1965,7 +1752,7 @@
 
       const missing = [
         'Approval thresholds and the authority matrix are ' + UNKNOWN + '. COS-02 records every tier as ALEX DECISION REQUIRED, so no materiality judgement is possible.',
-        'Budgets and commitments exist only on some sample records. Where they are absent, exposure against an authorized value is ' + UNKNOWN + '.',
+        'Budgets and commitments are not connected. Exposure against an authorized value is ' + UNKNOWN + ' unless a user has entered supporting information.',
         'Required supporting documents by invoice type are ' + UNKNOWN + ' (COS-08 question 13). The evidence rules applied are prototype assumptions.',
         'Retainage, lien-waiver, insurance and payment-term rules come from the controlling contract and jurisdiction, which are ' + UNKNOWN + '.',
         'Invoice volume, peak load and current AP ownership are ' + UNKNOWN + ' (COS-08 questions 5, 6 and 12), so none of these counts is representative of Costa.',
@@ -2091,7 +1878,7 @@
             return '<div class="list-row"><div class="row-top"><span class="row-title">' + esc(projectName(pid)) + '</span>' +
               '<span class="risk ' + level + '">' + level.toUpperCase() + '</span></div>' +
               '<div class="row-meta">' + fmtMoney(g.exposure) + ' open across ' + plural(g.count,'invoice') + ' · ' + esc(factors.join(', ')) + '</div>' +
-              '<div class="row-meta">' + (g.budget ? 'A sample budget line is represented for at least one invoice.' : 'Budget and margin data are ' + UNKNOWN + ' for this project.') + '</div></div>';
+              '<div class="row-meta">' + (g.budget ? 'User-entered budget information exists for at least one invoice.' : 'Budget and margin data are ' + UNKNOWN + ' for this project.') + '</div></div>';
           }).join('') + '</div>' +
           '<p class="helper" style="margin-top:10px">Risk here is derived only from invoice records in this browser — open exceptions, blocked approvals and overdue dates. Schedule, safety, margin and forecast data are not represented, so this is not a complete project risk picture.</p>'
         : '<div class="empty">No open invoices.</div>';
@@ -2137,6 +1924,24 @@
 
     function renderDashboard() {
       $('#today-label').textContent = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+      if (!state.invoices.length) {
+        $('#ava-briefing').innerHTML =
+          '<section class="ava" aria-labelledby="ava-h"><div class="ava-head"><div style="display:flex;gap:12px;align-items:flex-start">' +
+          '<div class="ava-mark" aria-hidden="true">AVA</div><div><h2 id="ava-h">Ready for Alex\'s first invoice</h2>' +
+          '<p class="ava-sub">This session is empty. No vendor, project, invoice, amount, risk, exception, activity, priority, or approval has been preloaded.</p></div></div>' +
+          '<button class="btn btn-primary" data-go="intake">Enter first invoice</button></div>' +
+          '<p class="ava-guard"><strong>What happens next.</strong> Dashboard totals and alerts appear only after an invoice is entered in this browser. Nothing shown here claims to be connected Costa company data.</p></section>';
+        $('#kpi-grid').innerHTML = '<div class="card card-pad" style="grid-column:1/-1"><div class="empty"><strong>No invoice data yet</strong>Use Invoice Intake to enter the first actual record. Metrics will remain blank until then.</div></div>';
+        $('#bottleneck-list').innerHTML = '<div class="empty">No invoices entered.</div>';
+        $('#project-risks').innerHTML = '<div class="empty">No project risk calculated. Risk appears only from invoices entered here.</div>';
+        $('#project-bars').innerHTML = '<div class="empty">No project exposure calculated.</div>';
+        $('#attention-list').innerHTML = '<div class="empty">No invoices entered.</div>';
+        $('#today-priorities').innerHTML = '<div class="empty">No priorities entered.</div>';
+        $('#recent-activity').innerHTML = '<div class="empty">No activity recorded.</div>';
+        $('#queue-badge').textContent = '0';
+        $('#exception-badge').textContent = '0';
+        return;
+      }
       renderAvaBriefing(); renderKpis(); renderBottlenecks(); renderProjectRisks(); renderAttention(); renderTodayPriorities(); renderActivity();
       const open = state.invoices.filter(i => !COMPLETED_FOR_EXPOSURE.includes(i.status));
       const byProject = {};
@@ -2459,7 +2264,7 @@
         '</section>' +
 
         /* ---- commitment & budget ---- */
-        '<section class="card card-pad"><div class="card-title"><div><h3>Commitment and budget impact</h3><p>Represented only where a sample snapshot exists</p></div></div>' +
+        '<section class="card card-pad"><div class="card-title"><div><h3>Commitment and budget impact</h3><p>Shown only when supporting information was entered</p></div></div>' +
           (inv.commitmentSnapshot
             ? '<div class="kv"><div><span class="k">Commitment</span><span class="v">' + esc(inv.commitmentSnapshot.source) + '</span></div>' +
               '<div><span class="k">Approved value</span><span class="v">' + fmtMoney(inv.commitmentSnapshot.approved) + '</span></div>' +
@@ -2773,8 +2578,6 @@
 
     /* ---------------- Intake ---------------- */
     function setupIntakeForm() {
-      $('#f-project').innerHTML = '<option value="">Select a project</option>' +
-        PROJECTS.map(p => '<option value="' + esc(p.id) + '">' + esc(p.name) + '</option>').join('');
       $('#f-type').innerHTML = Object.entries(INVOICE_TYPES).map(([k, v]) =>
         '<option value="' + esc(k) + '">' + esc(v.label) + '</option>').join('');
       $('#f-approver').innerHTML = ACTORS.filter(a => a.roles.some(r => ['pm','px','exec'].includes(r)))
@@ -2874,7 +2677,7 @@
       try {
         if (kind === 'session') {
           download('costa-construction-os-session-' + stamp + '.json',
-            JSON.stringify({ app:APP_ID, schemaVersion:SCHEMA_VERSION, exportedAt:nowIso(), exportedBy:actorLabel(state.actorId), notice:'Prototype export. All records are synthetic or user-entered in one browser. Not company data.', data:state }, null, 2));
+            JSON.stringify({ app:APP_ID, schemaVersion:SCHEMA_VERSION, exportedAt:nowIso(), exportedBy:actorLabel(state.actorId), notice:'Prototype export. Records were entered and stored in one browser; they were not independently verified or synchronized with a company system.', data:state }, null, 2));
         }
         if (kind === 'invoices') {
           download('costa-invoices-' + stamp + '.csv', csv(state.invoices, [
@@ -2889,7 +2692,7 @@
             ['Risk (derived)', r => riskOf(r).toUpperCase()], ['Payment status', r => r.payment.status], ['Payment reference', r => r.payment.reference || ''],
             ['AVA recommendation', r => avaForInvoice(r).verdict], ['Registered by', r => actorLabel(r.createdBy)],
             ['Assigned approver', r => actorLabel(r.approverActorId)], ['Audit events', r => (r.history || []).length],
-            ['Data source', r => r.source === 'sample' ? 'Built-in synthetic sample' : 'Entered in this browser'],
+            ['Data source', () => 'Entered in this browser'],
             ['Description','description']
           ]), 'text/csv;charset=utf-8');
         }
@@ -2984,12 +2787,12 @@
       reader.readAsText(file);
     }
 
-    function resetToSample() {
-      if (!confirm('Reset to sample data?\n\nThis permanently discards the ' + plural(state.invoices.length,'invoice') + ', every decision, comment and audit event, ' + plural(state.priorities.length,'priority','priorities') + ' and ' + plural(state.feedback.length,'feedback entry','feedback entries') + ' saved in this browser.\n\nExport first if you want to keep them.')) return;
+    function resetToEmpty() {
+      if (!confirm('Erase this browser session and start empty?\n\nThis permanently discards the ' + plural(state.invoices.length,'invoice') + ', every decision, comment and audit event, ' + plural(state.priorities.length,'priority','priorities') + ' and ' + plural(state.feedback.length,'feedback entry','feedback entries') + ' saved in this browser.\n\nExport first if you want to keep them.')) return;
       const keepActor = state.actorId;
       state = seedState(); state.actorId = keepActor;
       save(); renderAll(); renderActorSelect();
-      toast('Reset to sample data.');
+      toast('Clean empty session started.');
     }
 
     /* ---------------- Navigation & bootstrap ---------------- */
@@ -3063,24 +2866,6 @@
         renderFileList();
         if (pendingFiles.length) toast(plural(pendingFiles.length,'file name') + ' recorded. No file was uploaded or read.');
       });
-      $('#load-example').addEventListener('click', () => {
-        const f = $('#invoice-form');
-        f.vendor.value = 'SAMPLE — Coastal Steel Fabricators';
-        f.invoiceNumber.value = 'SAMPLE-CSF-' + Math.floor(20000 + Math.random() * 9000);
-        f.invoiceType.value = 'subcontract';
-        f.amountNet.value = '28750';
-        f.project.value = 'SP-01';
-        f.costCode.value = '05 12 00';
-        f.commitmentRef.value = 'SAMPLE-SC-245';
-        f.invoiceDate.value = dayOffset(-5);
-        f.receivedDate.value = dayOffset(-3);
-        f.dueDate.value = dayOffset(25);
-        f.description.value = 'Structural steel connection materials — release 3.';
-        ['invoiceDocument','receiptConfirmed','progressEvidence'].forEach(k => { const el = f.querySelector('[name="' + k + '"]'); if (el) el.checked = true; });
-        ['lienWaiver','insuranceCurrent','changeOrderApproved','bankingChangeRequested'].forEach(k => { const el = f.querySelector('[name="' + k + '"]'); if (el) el.checked = false; });
-        toast('Sample values loaded. Lien waiver and insurance are deliberately left undeclared so you can see EX-07 fire.');
-      });
-
       $('#queue-filters').addEventListener('click', e => {
         const b = e.target.closest('[data-filter]'); if (!b) return;
         queueFilter = b.dataset.filter;
@@ -3182,7 +2967,7 @@
         if (f) handleImport(f);
         e.target.value = '';
       });
-      $('#reset-btn').addEventListener('click', resetToSample);
+      $('#reset-btn').addEventListener('click', resetToEmpty);
 
       document.addEventListener('click', e => {
         if (e.target.id !== 'cfg-save') return;
