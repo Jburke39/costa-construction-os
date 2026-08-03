@@ -192,6 +192,9 @@
     .file-drop { border: 1px dashed #bdb5a8; border-radius: 12px; padding: 14px; background: #fff; }
     .file-list { display: grid; gap: 5px; margin-top: 9px; }
     .file-chip { display: flex; gap: 8px; align-items: center; font-size: .72rem; background: #f2efe9; border-radius: 8px; padding: 6px 9px; }
+    .input.extracted { border-color: var(--orange); background: #fffaf5; box-shadow: 0 0 0 2px rgba(242,106,33,.1); }
+    .extraction-status { margin-top: 10px; }
+    .extraction-status:empty { display: none; }
 
     /* ---------- Dashboard ---------- */
     .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); gap: 12px; margin-bottom: 16px; }
@@ -553,14 +556,14 @@
             <div>
               <span class="eyebrow">WF-001 · Step 1 · Capture</span>
               <h1 id="intake-title">Register a complete invoice record.</h1>
-              <p>Enter an actual invoice record and move it through the prototype workflow. Nothing is uploaded or analysed.</p>
+              <p>Choose a PDF or image to pre-fill common fields locally, then review the extracted values and move the invoice through the prototype workflow.</p>
             </div>
           </div>
 
-          <div class="banner warn">
-            <span aria-hidden="true">⚠</span>
-            <div class="banner-body"><strong>This form does not process documents.</strong>
-            Fields are typed by a human. There is no OCR, no extraction, no confidence score and no AI model. The file control below records file names as a declaration only — no file is read, uploaded, stored or analysed.</div>
+          <div class="banner info">
+            <span aria-hidden="true">✓</span>
+            <div class="banner-body"><strong>Private assisted entry.</strong>
+            PDF text extraction and image OCR run in this browser. The invoice is not uploaded, transmitted or saved by the website; only its file name and an extraction summary are retained. Alex must review every pre-filled value before creating the record.</div>
           </div>
 
           <div class="road-wrap"><div class="workflow-road" id="intake-road"></div></div>
@@ -599,16 +602,17 @@
                 </section>
 
                 <section class="card card-pad" aria-labelledby="upload-h">
-                  <div class="card-title"><div><h2 id="upload-h">Attachment names</h2><p>Prototype control — records file names only</p></div></div>
+                  <div class="card-title"><div><h2 id="upload-h">Upload invoice or supporting files</h2><p>The first supported PDF or image is read locally to assist entry</p></div></div>
                   <div class="file-drop">
-                    <label class="btn btn-secondary" for="f-files">Choose files…</label>
-                    <input id="f-files" name="files" type="file" multiple class="sr-only">
-                    <p class="helper" style="margin:9px 0 0">No file is uploaded, transmitted, stored or analysed. Only the file name is recorded, as a declaration that the document exists.</p>
+                    <label class="btn btn-secondary" for="f-files">Choose invoice or files…</label>
+                    <input id="f-files" name="files" type="file" multiple accept=".pdf,image/png,image/jpeg,image/webp" class="sr-only">
+                    <p class="helper" style="margin:9px 0 0">Text PDFs usually extract quickly. Scanned PDFs and images use local OCR and can take longer. The file is discarded from memory after extraction and is never included in an export.</p>
+                    <div class="extraction-status" id="extraction-status" role="status" aria-live="polite"></div>
                     <div class="file-list" id="file-list"></div>
                   </div>
                 </section>
 
-                <div class="callout"><strong>What happens on submit?</strong><br>The record is created at <em>Received</em>, registered, passed through extraction review (marked "human entered — no extraction performed"), then validated. Missing PO, missing receipt confirmation, missing required evidence, a duplicate vendor and number, or a declared banking change each create a visible typed exception. Blocking exceptions prevent approval until a human resolves or formally overrides them. No autonomous approval occurs.</div>
+                <div class="callout"><strong>What happens on submit?</strong><br>The record is created at <em>Received</em>, registered, and passed through extraction review. The audit history records whether fields were pre-filled from PDF text, local OCR or typed manually. Missing PO, missing receipt confirmation, missing required evidence, a duplicate vendor and number, or a declared banking change each create a visible typed exception. Blocking exceptions prevent approval until a human resolves or formally overrides them. No autonomous approval occurs.</div>
                 <div id="intake-errors" role="alert" aria-live="assertive"></div>
                 <div class="actions" style="justify-content:flex-end">
                   <button type="reset" class="btn btn-secondary">Clear form</button>
@@ -837,7 +841,7 @@
                   <li>Not authenticated. The role selector simulates a role; it is not a login and enforces nothing outside this browser tab.</li>
                   <li>Not shared. Two people using it see two unrelated sessions.</li>
                   <li>Not connected to accounting, project management, e-mail or a vendor master.</li>
-                  <li>Not processing documents. No OCR, no extraction, no confidence scores.</li>
+                  <li>Not storing documents. Assisted PDF extraction and OCR run locally, save no file contents and require human review; there is no model confidence score.</li>
                   <li>Not running an AI model. AVA output is deterministic JavaScript over the records in this browser.</li>
                   <li>Not moving money. No payment is scheduled, released or executed anywhere.</li>
                 </ul>
@@ -1237,6 +1241,7 @@
         inv.comments     = Array.isArray(inv.comments) ? inv.comments : [];
         inv.history      = Array.isArray(inv.history) ? inv.history : [];
         inv.attachments  = Array.isArray(inv.attachments) ? inv.attachments : [];
+        inv.extraction   = (inv.extraction && typeof inv.extraction === 'object') ? inv.extraction : null;
         inv.declarations = (inv.declarations && typeof inv.declarations === 'object') ? inv.declarations : {};
         inv.payment      = (inv.payment && typeof inv.payment === 'object') ? inv.payment
                            : { status:'Not scheduled', scheduledDate:null, paidDate:null, reference:null };
@@ -1351,6 +1356,14 @@
     let pendingDecision = null;
     let lastFocused = null;
     let pendingFiles = [];
+    let pendingFileObjects = [];
+    let pendingExtraction = null;
+    let extractionRunId = 0;
+    let pdfJsPromise = null;
+    let tesseractPromise = null;
+    const PDFJS_MODULE_URL = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@6.2.108/build/pdf.min.mjs';
+    const PDFJS_WORKER_URL = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@6.2.108/build/pdf.worker.min.mjs';
+    const TESSERACT_URL = 'https://cdn.jsdelivr.net/npm/tesseract.js@7.0.0/dist/tesseract.min.js';
 
     const currentActor = () => actorById(state.actorId);
     const actorHasRole = (r, a = currentActor()) => a.roles.includes(r);
@@ -1509,8 +1522,11 @@
         late > 0 ? 'The invoice was received ' + plural(late,'day') + ' after its stated due date.' :
                    'Received on or before the stated due date.', 'EX-13');
 
-      add('VC-17','Extraction confidence', NA,
-        'No document was uploaded, read or processed. Every field was typed by a human, so there is no extraction, no source anchor and no confidence score to review.', 'EX-08');
+      const extraction = inv.extraction;
+      add('VC-17','Extraction review', NA,
+        extraction && extraction.method
+          ? extraction.method + ' pre-filled ' + plural((extraction.extractedFields || []).length,'field') + ' from ' + (extraction.fileName || 'the selected invoice') + '. A human submitted the reviewed form. The source document itself was not uploaded or retained, and no model confidence score exists.'
+          : 'No extraction was performed. Every field was typed by a human, so there is no source anchor or confidence score to review.', 'EX-08');
 
       return out;
     }
@@ -1816,7 +1832,7 @@
         'Required supporting documents by invoice type are ' + UNKNOWN + ' (COS-08 question 13). The evidence rules applied are prototype assumptions.',
         'Retainage, lien-waiver, insurance and payment-term rules come from the controlling contract and jurisdiction, which are ' + UNKNOWN + '.',
         'Invoice volume, peak load and current AP ownership are ' + UNKNOWN + ' (COS-08 questions 5, 6 and 12), so none of these counts is representative of Costa.',
-        'No document was read and no accounting system was queried, so every figure here comes from what a human typed into this browser.'
+        'No accounting system was queried. Every figure comes from a field a human typed or reviewed in this browser; locally read invoice contents are not retained.'
       ];
 
       return { attention, why, evidence, action, missing, ranked, basis:AVA_BASIS,
@@ -2263,7 +2279,7 @@
       $('#drawer-status').innerHTML = tagHtml(inv.status) +
         (blockingExceptions(inv).length ? ' <span class="tag red">Approval blocked</span>' : '') +
         (isOverdue(inv) ? ' <span class="tag amber">Overdue</span>' : '') +
-        ' <span class="tag plain">Synthetic record</span>';
+        ' <span class="tag plain">Browser prototype record</span>';
 
       $('#drawer-body').innerHTML =
         /* ---- key facts ---- */
@@ -2281,6 +2297,7 @@
           '<div><span class="k">Accountable role</span><span class="v">' + esc(roleName(stateRole(inv.status))) + '</span></div>' +
           '<div><span class="k">Assigned project approver</span><span class="v">' + esc(actorLabel(inv.approverActorId)) + '</span></div>' +
           '<div><span class="k">Registered by</span><span class="v">' + esc(actorLabel(inv.createdBy)) + '</span></div>' +
+          '<div><span class="k">Data entry</span><span class="v">' + esc(inv.extraction && inv.extraction.method ? inv.extraction.method + ' · human reviewed' : 'Manual entry') + '</span></div>' +
           '<div><span class="k">Payment status</span><span class="v">' + esc(inv.payment.status) + (inv.payment.reference ? ' · ' + esc(inv.payment.reference) : '') + '</span></div>' +
           '<div><span class="k">Risk (derived)</span><span class="v">' + riskOf(inv).toUpperCase() + '</span></div>' +
         '</div>' +
@@ -2320,7 +2337,7 @@
           '<div class="checks-table">' + ava.checks.map(checkRow).join('') + '</div></section>' +
 
         /* ---- evidence ---- */
-        '<section class="card card-pad"><div class="card-title"><div><h3>Evidence status</h3><p>Declarations recorded at intake. No document was uploaded, stored or analysed.</p></div></div>' +
+        '<section class="card card-pad"><div class="card-title"><div><h3>Evidence status</h3><p>Declarations recorded at intake. Documents may assist local entry but are not uploaded, stored or independently verified.</p></div></div>' +
           '<div class="checklist">' + DECLARATIONS.map(d => {
             const on = !!(inv.declarations || {})[d.key];
             const required = (type.evidence || []).includes(d.key);
@@ -2328,7 +2345,7 @@
               '<span><strong>' + esc(d.label) + '</strong><span class="sub">' + (on ? 'Declared' : 'Not declared') + (required ? ' · assumed required for ' + esc(type.label) : '') + '</span></span></div>';
           }).join('') + '</div>' +
           (inv.attachments && inv.attachments.length
-            ? '<div class="file-list" style="margin-top:11px">' + inv.attachments.map(f => '<span class="file-chip">' + esc(f) + ' — name only; file not stored</span>').join('') + '</div>'
+            ? '<div class="file-list" style="margin-top:11px">' + inv.attachments.map(f => '<span class="file-chip">' + esc(f) + ' — filename only; document content not stored</span>').join('') + '</div>'
             : '<p class="helper" style="margin-top:11px">No attachment names recorded.</p>') +
         '</section>' +
 
@@ -2659,8 +2676,218 @@
 
     function renderFileList() {
       $('#file-list').innerHTML = pendingFiles.length
-        ? pendingFiles.map(f => '<span class="file-chip"><span aria-hidden="true">📄</span>' + esc(f) + ' — name recorded only; the file was not read or stored</span>').join('')
+        ? pendingFiles.map(f => '<span class="file-chip"><span aria-hidden="true">📄</span>' + esc(f) + ' — file name saved; document contents are not stored</span>').join('')
         : '';
+    }
+
+    function extractionStatus(tone, title, detail) {
+      const el = $('#extraction-status');
+      if (!el) return;
+      if (!title) { el.innerHTML = ''; return; }
+      el.innerHTML = '<div class="banner ' + (tone === 'warn' ? 'warn' : 'info') + '" style="margin:0"><span aria-hidden="true">' + (tone === 'working' ? '…' : tone === 'warn' ? '⚠' : '✓') + '</span><div class="banner-body"><strong>' + esc(title) + '</strong>' + (detail ? esc(detail) : '') + '</div></div>';
+    }
+
+    async function loadPdfJs() {
+      if (!pdfJsPromise) {
+        pdfJsPromise = import(PDFJS_MODULE_URL).then(lib => {
+          lib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER_URL;
+          return lib;
+        }).catch(err => { pdfJsPromise = null; throw err; });
+      }
+      return pdfJsPromise;
+    }
+
+    async function loadTesseract() {
+      if (window.Tesseract) return window.Tesseract;
+      if (!tesseractPromise) {
+        tesseractPromise = new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = TESSERACT_URL;
+          script.crossOrigin = 'anonymous';
+          script.onload = () => window.Tesseract ? resolve(window.Tesseract) : reject(new Error('OCR did not initialize.'));
+          script.onerror = () => reject(new Error('OCR could not be loaded.'));
+          document.head.appendChild(script);
+        }).catch(err => { tesseractPromise = null; throw err; });
+      }
+      return tesseractPromise;
+    }
+
+    async function createOcrWorker(runId) {
+      const Tesseract = await loadTesseract();
+      return Tesseract.createWorker('eng', undefined, {
+        logger: msg => {
+          if (runId !== extractionRunId || !msg || !msg.status) return;
+          const pct = Number.isFinite(msg.progress) ? ' ' + Math.round(msg.progress * 100) + '%' : '';
+          extractionStatus('working', 'Reading the invoice locally…', msg.status.replace(/\b\w/g, c => c.toUpperCase()) + pct + '. Keep this tab open.');
+        }
+      });
+    }
+
+    async function extractPdfLocally(file, runId) {
+      const pdfjs = await loadPdfJs();
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const pdf = await pdfjs.getDocument({ data:bytes, isEvalSupported:false }).promise;
+      const pages = Math.min(pdf.numPages, 8);
+      const pageTexts = [];
+      for (let n = 1; n <= pages; n++) {
+        if (runId !== extractionRunId) throw new Error('A newer file selection replaced this extraction.');
+        extractionStatus('working', 'Reading PDF text locally…', 'Page ' + n + ' of ' + pages + '.');
+        const page = await pdf.getPage(n);
+        const content = await page.getTextContent();
+        let text = '';
+        content.items.forEach(item => { text += String(item.str || '') + (item.hasEOL ? '\n' : ' '); });
+        pageTexts.push(text);
+        page.cleanup();
+      }
+      let text = pageTexts.join('\n');
+      if (text.replace(/\s/g, '').length >= 80) return { text, method:'PDF text', pages };
+
+      const ocrPages = Math.min(pdf.numPages, 3);
+      const worker = await createOcrWorker(runId);
+      const ocrText = [];
+      try {
+        for (let n = 1; n <= ocrPages; n++) {
+          if (runId !== extractionRunId) throw new Error('A newer file selection replaced this extraction.');
+          extractionStatus('working', 'Scanning PDF locally with OCR…', 'Page ' + n + ' of ' + ocrPages + '. This can take a minute.');
+          const page = await pdf.getPage(n);
+          const viewport = page.getViewport({ scale:1.7 });
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.ceil(viewport.width); canvas.height = Math.ceil(viewport.height);
+          await page.render({ canvasContext:canvas.getContext('2d', { alpha:false }), viewport }).promise;
+          const result = await worker.recognize(canvas);
+          ocrText.push((result.data && result.data.text) || '');
+          canvas.width = canvas.height = 1;
+          page.cleanup();
+        }
+      } finally { await worker.terminate(); }
+      return { text:ocrText.join('\n'), method:'Local OCR from PDF', pages:ocrPages };
+    }
+
+    async function extractImageLocally(file, runId) {
+      const worker = await createOcrWorker(runId);
+      try {
+        extractionStatus('working', 'Scanning image locally with OCR…', 'This can take a minute. Keep this tab open.');
+        const result = await worker.recognize(file);
+        return { text:(result.data && result.data.text) || '', method:'Local OCR from image', pages:1 };
+      } finally { await worker.terminate(); }
+    }
+
+    const moneyValue = raw => {
+      const clean = String(raw || '').replace(/[^0-9.()-]/g, '').replace(/[()]/g, '');
+      const value = Number(clean.replace(/,/g, ''));
+      return Number.isFinite(value) ? value.toFixed(2) : '';
+    };
+
+    function inputDateValue(raw) {
+      const text = String(raw || '').trim().replace(/^(?:on\s+)/i, '').replace(/[,]/g, ' ');
+      let m = text.match(/\b(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})\b/);
+      if (m) {
+        let year = Number(m[3]); if (year < 100) year += 2000;
+        const month = Number(m[1]), day = Number(m[2]);
+        if (month >= 1 && month <= 12 && day >= 1 && day <= 31) return year + '-' + String(month).padStart(2,'0') + '-' + String(day).padStart(2,'0');
+      }
+      m = text.match(/\b(20\d{2})-(\d{1,2})-(\d{1,2})\b/);
+      if (m) return m[1] + '-' + m[2].padStart(2,'0') + '-' + m[3].padStart(2,'0');
+      const d = new Date(text);
+      if (!isNaN(d) && d.getFullYear() >= 2000 && d.getFullYear() <= 2100)
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+      return '';
+    }
+
+    function parseInvoiceText(text) {
+      const normalized = String(text || '').replace(/\r/g, '\n').replace(/[ \t]+/g, ' ');
+      const lines = normalized.split(/\n+/).map(x => x.trim()).filter(Boolean);
+      const full = lines.join('\n');
+      const first = patterns => {
+        for (const pattern of patterns) { const m = full.match(pattern); if (m && m[1]) return m[1].trim(); }
+        return '';
+      };
+      const labeledMoney = labels => {
+        for (const label of labels) {
+          const re = new RegExp('(?:^|\\n)' + label + '\\s*[:#-]?\\s*\\$?\\s*([0-9][0-9,]*(?:\\.[0-9]{2})?)', 'im');
+          const m = full.match(re); if (m) return moneyValue(m[1]);
+        }
+        return '';
+      };
+      const vendorLabeled = first([/^(?:vendor|supplier|from)\s*[:#-]\s*(.{3,80})$/im]);
+      const vendorCandidate = lines.slice(0, 14).find(line =>
+        /[A-Za-z]{3}/.test(line) && line.length >= 3 && line.length <= 80 &&
+        !/^(invoice|tax invoice|invoice number|invoice no|date|bill to|ship to|remit to|amount|total|page|phone|fax|email|www\.|statement|purchase order|po\b)/i.test(line) &&
+        !/^\d+[\s\w.,#-]+(?:street|st\.?|road|rd\.?|avenue|ave\.?|drive|dr\.?|lane|ln\.?|boulevard|blvd\.?)/i.test(line));
+      const invoiceDateRaw = first([/^(?:invoice\s+date|date\s+issued)\s*[:#-]?\s*([^\n]{4,30})$/im, /^date\s*[:#-]\s*([^\n]{4,30})$/im]);
+      const dueDateRaw = first([/^(?:payment\s+due|due\s+date|date\s+due)\s*[:#-]?\s*([^\n]{4,30})$/im]);
+      const fields = {
+        vendor: vendorLabeled || vendorCandidate || '',
+        project: first([/^(?:project(?:\s+name|\s+number|\s+no\.?)?|job(?:\s+name|\s+number|\s+no\.?)?)\s*[:#-]\s*(.{2,80})$/im]),
+        invoiceNumber: first([/^(?:invoice\s*(?:number|no\.?|#)|inv\s*(?:no\.?|#))\s*[:#-]?\s*([A-Z0-9][A-Z0-9./_-]{1,40})$/im]),
+        amountNet: labeledMoney(['amount\\s+due','total\\s+due','balance\\s+due','net\\s+(?:amount|due|payable)','invoice\\s+total','grand\\s+total']),
+        amountGross: labeledMoney(['gross\\s+amount','subtotal']),
+        taxAmount: labeledMoney(['sales\\s+tax','tax']),
+        retainageAmount: labeledMoney(['retainage(?:\\s+withheld)?','retention(?:\\s+withheld)?']),
+        invoiceDate: inputDateValue(invoiceDateRaw),
+        dueDate: inputDateValue(dueDateRaw),
+        commitmentRef: first([/^(?:purchase\s+order|p\.?o\.?\s*(?:number|no\.?|#)?|contract\s*(?:number|no\.?|#)?)\s*[:#-]?\s*([A-Z0-9][A-Z0-9./_-]{1,40})$/im]),
+        costCode: first([/^cost\s*code\s*[:#-]?\s*([A-Z0-9][A-Z0-9 ._/-]{1,30})$/im]),
+        changeOrderRef: first([/^(?:change\s+order|c\.?o\.?)\s*(?:number|no\.?|#)?\s*[:#-]?\s*([A-Z0-9][A-Z0-9./_-]{1,30})$/im])
+      };
+      Object.keys(fields).forEach(k => { if (typeof fields[k] === 'string') fields[k] = fields[k].trim(); });
+      return fields;
+    }
+
+    function applyExtractedFields(fields) {
+      const mapping = {
+        vendor:['#f-vendor','Vendor'], project:['#f-project','Project'], invoiceNumber:['#f-number','Invoice number'],
+        amountNet:['#f-amount','Net amount'], amountGross:['#f-gross','Gross amount'], taxAmount:['#f-tax','Tax'],
+        retainageAmount:['#f-retainage','Retainage'], invoiceDate:['#f-invoice-date','Invoice date'], dueDate:['#f-due-date','Due date'],
+        commitmentRef:['#f-commitment','PO / contract'], costCode:['#f-costcode','Cost code'], changeOrderRef:['#f-co','Change order']
+      };
+      const filled = [];
+      Object.entries(mapping).forEach(([key, pair]) => {
+        const value = fields[key]; const input = $(pair[0]);
+        if (!value || !input || String(input.value || '').trim()) return;
+        input.value = value; input.classList.add('extracted'); filled.push({ key, label:pair[1] });
+      });
+      const invoiceDoc = document.querySelector('[name="invoiceDocument"]');
+      if (invoiceDoc) invoiceDoc.checked = true;
+      return filled;
+    }
+
+    async function processInvoiceFiles(files) {
+      const runId = ++extractionRunId;
+      pendingExtraction = null;
+      $$('#invoice-form .input.extracted').forEach(el => el.classList.remove('extracted'));
+      const file = files.find(f => f.type === 'application/pdf' || /^image\/(?:png|jpeg|webp)$/i.test(f.type) || /\.(?:pdf|png|jpe?g|webp)$/i.test(f.name));
+      if (!file) {
+        extractionStatus('warn', 'No supported invoice selected.', 'Use a PDF, PNG, JPG or WebP file, or enter the fields manually.');
+        pendingFileObjects = [];
+        return;
+      }
+      extractionStatus('working', 'Opening ' + file.name + ' locally…', 'No document content is being uploaded.');
+      try {
+        const result = file.type === 'application/pdf' || /\.pdf$/i.test(file.name)
+          ? await extractPdfLocally(file, runId) : await extractImageLocally(file, runId);
+        if (runId !== extractionRunId) return;
+        const fields = parseInvoiceText(result.text);
+        const filled = applyExtractedFields(fields);
+        pendingExtraction = {
+          fileName:file.name, method:result.method, pages:result.pages,
+          extractedAt:nowIso(), extractedFields:filled.map(x => x.key), textCharacters:String(result.text || '').length
+        };
+        if (filled.length) {
+          extractionStatus('ok', filled.length + ' fields pre-filled — review every orange field.', filled.map(x => x.label).join(', ') + '. Correct anything that does not exactly match the invoice.');
+          toast('Invoice read locally. ' + plural(filled.length,'field') + ' pre-filled for review.');
+        } else {
+          extractionStatus('warn', 'The invoice was read, but no fields were reliable enough to pre-fill.', 'Enter the values manually. The file was not uploaded or stored.');
+        }
+      } catch (err) {
+        if (runId !== extractionRunId) return;
+        pendingExtraction = null;
+        extractionStatus('warn', 'Automatic extraction did not finish.', 'Enter the fields manually. The selected file was not uploaded or stored.');
+        console.warn('Local invoice extraction failed:', err);
+      } finally {
+        pendingFileObjects = [];
+        const input = $('#f-files'); if (input) input.value = '';
+      }
     }
 
     function createInvoice(form) {
@@ -2672,7 +2899,8 @@
       if (get('amountNet') && !(num(get('amountNet')) > 0)) errs.push('Net amount must be greater than zero.');
       if (errs.length) {
         $('#intake-errors').innerHTML = '<div class="banner warn" style="margin:0 0 11px"><span aria-hidden="true">⚠</span><div class="banner-body"><strong>Cannot create the record yet.</strong><ul style="margin:6px 0 0;padding-left:17px">' + errs.map(e => '<li>' + esc(e) + '</li>').join('') + '</ul></div></div>';
-        const first = form.querySelector('[name="' + required.find(([k]) => !get(k))[0] + '"]');
+        const missing = required.find(([k]) => !get(k));
+        const first = missing ? form.querySelector('[name="' + missing[0] + '"]') : form.querySelector('[name="amountNet"]');
         if (first) first.focus();
         return;
       }
@@ -2692,17 +2920,22 @@
         amountNet:num(get('amountNet')), amountGross:optNum('amountGross'), taxAmount:optNum('taxAmount'), retainageAmount:optNum('retainageAmount'),
         invoiceDate:get('invoiceDate'), receivedDate:get('receivedDate'), dueDate:get('dueDate'),
         description:get('description'), approverActorId:get('approverActorId'),
-        createdBy:me, createdAt:nowIso(), source:'user',
+        createdBy:me, createdAt:nowIso(), source:pendingExtraction ? 'browser-assisted' : 'user',
+        extraction:pendingExtraction ? Object.assign({}, pendingExtraction, { reviewedAt:nowIso(), reviewedBy:me }) : null,
         declarations, attachments:pendingFiles.slice(),
         status:'received', previousStage:'received', exceptions:[], comments:[], history:[]
       });
 
       const corr = uid('corr');
-      recordEvent(inv, 'document','invoice.received','Captured through the prototype intake form by ' + actorLabel(me) + '. No document was uploaded or transmitted.', me, { to:'received', correlationId:corr });
+      recordEvent(inv, 'document','invoice.received','Captured through the prototype intake form by ' + actorLabel(me) + '. ' + (inv.extraction ? 'The selected document was read locally for assisted entry; its bytes were not uploaded or retained.' : 'No document content was uploaded or transmitted.'), me, { to:'received', correlationId:corr });
       inv.status = 'registered';
-      recordEvent(inv, 'workflow','invoice.registered','Unique record ID ' + id + ' assigned with a receipt timestamp. No content hash exists because no document was captured.', me, { from:'received', to:'registered', correlationId:corr });
+      recordEvent(inv, 'workflow','invoice.registered','Unique record ID ' + id + ' assigned with a receipt timestamp. No content hash exists because document bytes are not retained by this browser prototype.', me, { from:'received', to:'registered', correlationId:corr });
       inv.status = 'extraction_review';
-      recordEvent(inv, 'data','extraction.skipped','No extraction was performed. Every field was typed by a human, so there is no source anchor and no confidence score to review.', me, { from:'registered', to:'extraction_review', correlationId:corr });
+      if (inv.extraction) {
+        recordEvent(inv, 'data','extraction.reviewed', inv.extraction.method + ' pre-filled ' + plural((inv.extraction.extractedFields || []).length,'field') + ' from ' + inv.extraction.fileName + '. ' + actorLabel(me) + ' submitted the form after review. The document itself was not uploaded or retained; there is no model confidence score.', me, { from:'registered', to:'extraction_review', correlationId:corr });
+      } else {
+        recordEvent(inv, 'data','extraction.skipped','No extraction was performed. Every field was typed by a human, so there is no source anchor and no confidence score to review.', me, { from:'registered', to:'extraction_review', correlationId:corr });
+      }
       inv.status = 'validation';
 
       const found = detectNewExceptions(inv, state.invoices);
@@ -2719,7 +2952,7 @@
 
       state.invoices.unshift(inv);
       save();
-      form.reset(); pendingFiles = []; renderFileList(); setupIntakeForm();
+      form.reset(); pendingFiles = []; pendingFileObjects = []; pendingExtraction = null; renderFileList(); extractionStatus('', '', ''); setupIntakeForm();
       renderAll();
       navigate('queue');
       renderDrawer(inv.id);
@@ -2761,7 +2994,10 @@
             ['Risk (derived)', r => riskOf(r).toUpperCase()], ['Payment status', r => r.payment.status], ['Payment reference', r => r.payment.reference || ''],
             ['AVA recommendation', r => avaForInvoice(r).verdict], ['Registered by', r => actorLabel(r.createdBy)],
             ['Assigned approver', r => actorLabel(r.approverActorId)], ['Audit events', r => (r.history || []).length],
-            ['Data source', () => 'Entered in this browser'],
+            ['Data entry', r => r.extraction && r.extraction.method ? r.extraction.method + ' — human reviewed' : 'Manual entry'],
+            ['Extraction filename', r => r.extraction ? r.extraction.fileName || '' : ''],
+            ['Extracted fields', r => r.extraction ? (r.extraction.extractedFields || []).join(' | ') : ''],
+            ['Data source', () => 'Entered and stored in this browser'],
             ['Description','description']
           ]), 'text/csv;charset=utf-8');
         }
@@ -2877,10 +3113,10 @@
       },
       intake: {
         title:'AVA guide — Enter an invoice',
-        intro:'Copy the information from the actual invoice into this form.',
-        steps:['Enter the vendor, project, invoice number, amount and dates.','Check only the supporting documents that really exist. File selection records names only.','Choose the project approver, then select Create invoice record.'],
-        note:'Nothing is uploaded or read. Confirm every field before creating the record.',
-        action:{ label:'Start with vendor', focus:'#f-vendor' }
+        intro:'Upload a PDF or image for private assisted entry, then confirm the record against the actual invoice.',
+        steps:['Choose the invoice file. PDF text extraction or image OCR runs only in this browser.','Review every orange pre-filled field and complete anything missing, especially project, dates and approver.','Check only evidence that really exists, then select Create invoice record.'],
+        note:'The file is not uploaded or saved. Extraction can be wrong, so the human review is mandatory.',
+        action:{ label:'Choose invoice', click:'#f-files' }
       },
       queue: {
         title:'AVA guide — Make the next decision',
@@ -3011,11 +3247,20 @@
       });
 
       $('#invoice-form').addEventListener('submit', e => { e.preventDefault(); createInvoice(e.currentTarget); });
-      $('#invoice-form').addEventListener('reset', () => { pendingFiles = []; setTimeout(() => { renderFileList(); $('#intake-errors').innerHTML = ''; $('#f-received-date').value = dayOffset(0); }, 0); });
+      $('#invoice-form').addEventListener('reset', () => {
+        extractionRunId++;
+        pendingFiles = []; pendingFileObjects = []; pendingExtraction = null;
+        setTimeout(() => {
+          renderFileList(); extractionStatus('', '', '');
+          $$('#invoice-form .input.extracted').forEach(el => el.classList.remove('extracted'));
+          $('#intake-errors').innerHTML = ''; $('#f-received-date').value = dayOffset(0);
+        }, 0);
+      });
       $('#f-files').addEventListener('change', e => {
-        pendingFiles = Array.from(e.target.files || []).map(f => f.name);
+        pendingFileObjects = Array.from(e.target.files || []);
+        pendingFiles = pendingFileObjects.map(f => f.name);
         renderFileList();
-        if (pendingFiles.length) toast(plural(pendingFiles.length,'file name') + ' recorded. No file was uploaded or read.');
+        if (pendingFiles.length) processInvoiceFiles(pendingFileObjects.slice());
       });
       $('#queue-filters').addEventListener('click', e => {
         const b = e.target.closest('[data-filter]'); if (!b) return;

@@ -5,9 +5,10 @@ built for Alex Costa to open, understand, test and argue with.
 
 > **Prototype only.** Data is saved in this browser and is not shared with Jack,
 > Alex, Google Drive, or a company system. Export the session to share it.
-> There is no authentication, no live company data, no document processing, no AI
-> model, no accounting integration, and no payment execution. Every sample record
-> is synthetic and labelled `SAMPLE`.
+> There is no authentication, no live company data, no shared backend, no AI
+> model, no accounting integration, and no payment execution. No sample company
+> records are preloaded. PDF text extraction and image OCR run locally in the
+> browser; document contents are not uploaded, stored or included in exports.
 
 **This is not the Construction OS.** It is one workflow — WF-001 invoice
 approval — rendered concretely enough to be corrected.
@@ -19,7 +20,7 @@ approval — rendered concretely enough to be corrected.
 | Area | What you can do |
 | --- | --- |
 | **AVA executive intelligence** | An executive briefing and a per-invoice recommendation, each stating what needs attention, why it matters, the evidence used, the recommended human action, and what is missing or uncertain. AVA never approves anything. |
-| **Invoice intake and approval** | Register a synthetic invoice with vendor, project, type, amount, all three dates, PO or contract reference, cost code, description, supporting-document declarations and a project approver. Then move it through the canonical workflow. |
+| **Invoice intake and approval** | Select a PDF or image for local assisted entry, review the pre-filled fields, complete vendor, project, type, amount, dates, PO or contract reference, cost code, description, supporting-document declarations and project approver, then move the browser prototype record through the canonical workflow. |
 | **Exception management** | Typed exceptions with the COS-04 code, severity, accountable role and target time. Critical and High block approval until a human resolves or formally overrides them. |
 | **Executive monitoring** | Invoices requiring attention, pending approval dollars, exceptions, overdue items, project risks, today's priorities, recent activity and approval bottlenecks. |
 | **The Construction OS organization** | The ten departments from COS-01, the authority ladder from COS-02, and AVA shown as bounded support that is never accountable. |
@@ -82,14 +83,15 @@ Use the local server if you want your session to survive a reload.
    actually works. Note that the executive approval tier ships **switched off**,
    because COS-02 still records every threshold as *ALEX DECISION REQUIRED*.
 7. **Alex feedback.** Record what is wrong.
-8. **Session data → Export.** Send Jack the file.
+8. **Session data → Export.** Save a daily recovery copy and send it to Jack when requested.
 
-Use **Session data → Reset to sample data** whenever you want a clean start.
+Use **Session data → Erase session and start empty** only after exporting anything you need to keep.
 
 ## How local storage works
 
-- Your session is saved in this browser under `costa-construction-os.v2`, using
+- Your session is saved in this browser under `costa-construction-os.v3`, using
   `localStorage`. It never leaves the machine.
+- Up to seven daily recovery copies are rotated in the same browser.
 - It persists across reloads and across closing the browser.
 - **Clearing your browser data deletes it permanently.** Private and incognito
   windows, "clear site data", and some privacy extensions will remove it.
@@ -97,9 +99,8 @@ Use **Session data → Reset to sample data** whenever you want a clean start.
   session. There is no sync.
 - If the browser refuses to write, the app tells you and asks you to export
   rather than pretending it saved.
-- The stored schema version is checked on load. A session written by a different
-  version is not migrated and not deleted — sample data loads instead and the
-  Session data page explains why.
+- Legacy v2 data is not deleted, but it is kept separate from the clean v3
+  session so earlier synthetic records cannot reappear as current work.
 
 ## How Alex exports a session
 
@@ -153,8 +154,7 @@ Then, in the repository, open **Settings → Pages**, set **Source** to *Deploy
 from a branch*, choose the branch and the `/ (root)` folder, and save. The URL
 appears there within a minute or two.
 
-There is no deployment URL in this README because nothing has been deployed. Do
-not add one until a real URL has been opened and checked.
+Current public prototype: <https://costa-construction-os.jburke39.chatgpt.site/prototype>
 
 ## What a real shared backend would require
 
@@ -169,8 +169,9 @@ In rough order:
    people it audits.
 5. Document storage with immutable originals, content hashes, retention classes
    and legal hold.
-6. Real extraction with confidence and source anchors, and a correction path that
-   never overwrites the original.
+6. Production extraction with field-level confidence, immutable source anchors
+   and a correction path that never overwrites the original. The prototype's
+   local extraction is an entry aid only.
 7. Integrations with the accounting and project-management platforms, once COS-08
    questions 7 and 8 are answered.
 8. Notifications and SLA escalation.
@@ -187,12 +188,14 @@ The full list is in [`docs/PROTOTYPE-LIMITATIONS.md`](docs/PROTOTYPE-LIMITATIONS
 The short version:
 
 - No authentication, no sharing, no server, no integrations, no document
-  processing, no AI model, no payment execution.
+  storage, no AI model, no payment execution.
+- Browser-side PDF extraction and OCR can be wrong, have no field-level
+  confidence score and require human confirmation before a record is created.
 - Duplicate detection is vendor plus invoice number only — there is no document
   hash.
 - SLA targets are displayed but nothing enforces, escalates or notifies.
-- Extraction, retainage rules and payment terms are reported as *not evaluated*,
-  never faked.
+- Extraction review, retainage rules and payment terms are reported honestly;
+  missing control evidence is never presented as a pass.
 - Seven workflow rules are prototype assumptions rather than Costa facts, each
   flagged in the interface.
 - Every unresolved COS-08 fact shows as `To validate`, `Not configured` or

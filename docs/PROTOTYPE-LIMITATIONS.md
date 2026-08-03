@@ -16,22 +16,22 @@ disclaimer for its own sake.
 | Not shared | Data lives in one browser profile. Two people using the prototype see two unrelated sessions. Jack cannot see Alex's session, and Alex cannot see Jack's. |
 | Not monitored | Nothing is transmitted anywhere. There is no server, no database, no logging endpoint, no analytics. |
 | Not integrated | No accounting system, project-management platform, vendor master, e-mail intake or ERP is connected. |
-| Not processing documents | No file is uploaded, read, stored, hashed or analysed. The attachment control records file **names** only, as a declaration. |
+| Not storing documents | A selected PDF or image can be read locally for assisted entry. Document bytes and extracted text are not uploaded, persisted or exported. Only the filename and extraction summary remain. |
 | Not running AI | AVA output is deterministic JavaScript over the records in the browser. No model runs. There is no confidence score because nothing produced one. |
 | Not moving money | No payment is scheduled, released or executed. Payment status is a recorded value and nothing more. |
-| Not company data | Every sample record is synthetic and labelled `SAMPLE`. No Costa vendor, project, employee, amount or threshold appears anywhere. |
+| Not connected company data | No company records are preloaded. Alex may enter real records for testing, but they remain only in his browser and are not verified against a Costa system. |
 
 ## 2. Data and persistence
 
-- Storage is `localStorage` under the key `costa-construction-os.v2`.
+- Storage is `localStorage` under the key `costa-construction-os.v3`, with up to
+  seven rotating daily browser recovery snapshots.
 - **Clearing browser data destroys the session permanently.** So do private and
   incognito windows, "clear site data", and some privacy extensions.
 - Different browsers, devices and profiles each hold a separate session.
 - Storage is roughly 5 MB. If a write fails the application says so, keeps
   working on screen, and tells you to export — it does not pretend to have saved.
-- The schema version is checked on load. A session from a different schema is
-  **not** migrated and **not** deleted; sample data loads instead and the reason
-  is shown on the Session data page.
+- The current schema is normalized on load and import. Legacy v2 records are
+  left untouched and ignored rather than silently mixed with the current session.
 - Export is the only way to move a session. You send the file yourself.
 
 ## 3. Rules the prototype had to assume
@@ -56,8 +56,8 @@ Costa fact.
 6. **Risk level.** Derived from open exception severity plus overdue status.
    COS-04 references a risk score without defining a formula.
 7. **Duplicate detection** uses vendor plus invoice number only. COS-04 also
-   requires a document hash and fuzzy similarity; there is no document, so the
-   check is weaker than the standard and says so.
+   requires a document hash and fuzzy similarity; document bytes are not retained,
+   so the check is weaker than the standard and says so.
 
 ## 4. Facts left deliberately blank
 
@@ -93,9 +93,9 @@ because they cannot exist in a browser-local static page:
 | COS-05 | Requirement | Status |
 | --- | --- | --- |
 | FR-001 | Authenticated upload, immutable original, content hash | Absent |
-| FR-003 | Extraction with per-field confidence and source anchor | Absent — reported as "not evaluated", never faked |
+| FR-003 | Extraction with per-field confidence and source anchor | Partial — local PDF text extraction and OCR assist entry, but provide no field confidence or retained source anchor and require human review |
 | FR-004 | Correction overlay with before / after / reason | Partial — corrections happen as a linked resubmission, not per field |
-| FR-005 | Match against real vendor, project, contract, cost code, commitment | Partial — only where a sample snapshot exists |
+| FR-005 | Match against real vendor, project, contract, cost code, commitment | Partial — typed references only; no connected system verifies them |
 | FR-012 | Notifications, reminders, SLA escalation | Absent |
 | FR-015 | Receive downstream scheduled / paid status | Simulated locally |
 
@@ -120,8 +120,8 @@ next decision, not a formality:
    outside the reach of the people it audits.
 5. **Document storage.** Immutable originals with content hashes, retention
    classes and legal hold.
-6. **Real extraction**, with confidence, source anchors and a human correction
-   path that never overwrites the original.
+6. **Production extraction**, with confidence, immutable source anchors and a
+   human correction path that never overwrites the original.
 7. **Integrations** with the accounting and project-management platforms, once
    COS-08 questions 7 and 8 are answered.
 8. **Notifications and SLA escalation.**
