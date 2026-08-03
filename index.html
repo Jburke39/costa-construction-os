@@ -711,7 +711,7 @@
             </div>
             <div class="org-level">
               <div class="org-card"><span class="role">Pilot validation</span><strong>Alex Costa</strong><p>Pilot Product Owner / Executive Test User — actual role and authority to validate</p></div>
-              <div class="org-card ava-card"><span class="role">Bounded support</span><div class="org-ava"><img class="ava-mark" src="assets/ava-construction.png" alt="AVA"><strong>AVA</strong></div><p>Analyses, explains, recommends, prioritises, routes, escalates. Never accountable. Never approves.</p></div>
+              <div class="org-card ava-card"><span class="role">Bounded support</span><div class="org-ava"><img class="ava-mark" src="https://raw.githubusercontent.com/Jburke39/costa-construction-os/main/assets/ava-construction.png" alt="AVA"><strong>AVA</strong></div><p>Analyses, explains, recommends, prioritises, routes, escalates. Never accountable. Never approves.</p></div>
             </div>
           </section>
 
@@ -1849,7 +1849,7 @@
         '<section class="ava" aria-labelledby="ava-h">' +
           '<div class="ava-head">' +
             '<div style="display:flex;gap:12px;align-items:flex-start;min-width:0">' +
-              '<img class="ava-mark" src="assets/ava-construction.png" alt="AVA">' +
+              '<img class="ava-mark" src="https://raw.githubusercontent.com/Jburke39/costa-construction-os/main/assets/ava-construction.png" alt="AVA">' +
               '<div><h2 id="ava-h">AVA executive briefing</h2>' +
               '<p class="ava-sub">Prototype recommendation — not an approval, not a decision, not an AI model. ' + esc(AVA_BASIS) + '</p></div>' +
             '</div>' +
@@ -1987,7 +1987,7 @@
       if (!state.invoices.length) {
         $('#ava-briefing').innerHTML =
           '<section class="ava" aria-labelledby="ava-h"><div class="ava-head"><div style="display:flex;gap:12px;align-items:flex-start">' +
-          '<img class="ava-mark" src="assets/ava-construction.png" alt="AVA"><div><h2 id="ava-h">Alex\'s first-week checklist</h2>' +
+          '<img class="ava-mark" src="https://raw.githubusercontent.com/Jburke39/costa-construction-os/main/assets/ava-construction.png" alt="AVA"><div><h2 id="ava-h">Alex\'s first-week checklist</h2>' +
           '<p class="ava-sub">The workflow is ready, but no invented company records are loaded. Use actual invoices to build the dashboard.</p></div></div>' +
           '<button class="btn btn-primary" data-go="intake">Enter first invoice</button></div>' +
           '<div class="ava-sections">' +
@@ -2300,7 +2300,7 @@
 
         /* ---- AVA ---- */
         '<section class="ava"><div class="ava-head"><div style="display:flex;gap:11px;align-items:flex-start;min-width:0">' +
-          '<img class="ava-mark" src="assets/ava-construction.png" alt="AVA"><div><h3 style="margin:0;font-size:.95rem">AVA recommendation</h3>' +
+          '<img class="ava-mark" src="https://raw.githubusercontent.com/Jburke39/costa-construction-os/main/assets/ava-construction.png" alt="AVA"><div><h3 style="margin:0;font-size:.95rem">AVA recommendation</h3>' +
           '<p class="ava-sub">' + esc(AVA_BASIS) + '</p></div></div><span class="tag amber">Prototype recommendation</span></div>' +
           '<p class="ava-verdict">' + esc(ava.verdict) + '</p>' +
           '<div class="ava-sections" style="margin-top:11px">' +
@@ -2938,7 +2938,7 @@
       const actionAttrs = action.go ? ' data-go="' + esc(action.go) + '"'
         : action.focus ? ' data-guide-focus="' + esc(action.focus) + '"'
         : action.click ? ' data-guide-click="' + esc(action.click) + '"' : '';
-      el.innerHTML = '<img class="ava-mark" src="assets/ava-construction.png" alt="AVA">' +
+      el.innerHTML = '<img class="ava-mark" src="https://raw.githubusercontent.com/Jburke39/costa-construction-os/main/assets/ava-construction.png" alt="AVA">' +
         '<div class="ava-guide-copy"><h2 id="ava-guide-' + esc(page) + '">' + esc(guide.title) + '</h2>' +
         '<p>' + esc(guide.intro) + '</p><div class="ava-guide-steps">' +
         guide.steps.map(step => '<div class="ava-guide-step">' + esc(step) + '</div>').join('') +
