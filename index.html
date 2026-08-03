@@ -217,6 +217,26 @@
     .ava-verdict { font-size: .85rem; font-weight: 700; }
     .ava-guard { margin-top: 12px; font-size: .71rem; color: #4d2f00; background: var(--amber-soft); border: 1px solid #edd39a; border-radius: 10px; padding: 9px 11px; }
 
+    /* ---------- AVA page guide ---------- */
+    .ava-page-guide {
+      display: grid; grid-template-columns: auto minmax(0,1fr) auto; gap: 14px; align-items: start;
+      margin: -4px 0 22px; padding: 16px; border: 1px solid #c7d7df; border-radius: 14px;
+      background: linear-gradient(135deg, #eef6fa 0%, #fffdf9 72%);
+    }
+    .ava-page-guide .ava-mark { width: 40px; height: 40px; }
+    .ava-guide-copy { min-width: 0; }
+    .ava-guide-copy h2 { margin: 0; font-size: .9rem; }
+    .ava-guide-copy > p { margin: 3px 0 10px; color: var(--muted); font-size: .73rem; }
+    .ava-guide-steps { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 8px; counter-reset: ava-step; }
+    .ava-guide-step { position: relative; min-width: 0; padding: 9px 9px 9px 34px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255,255,255,.88); font-size: .72rem; }
+    .ava-guide-step::before {
+      counter-increment: ava-step; content: counter(ava-step); position: absolute; left: 9px; top: 8px;
+      width: 18px; height: 18px; display: grid; place-items: center; border-radius: 50%;
+      background: var(--ink); color: #fff; font-size: .62rem; font-weight: 850;
+    }
+    .ava-guide-note { margin: 9px 0 0 !important; color: #4d2f00 !important; font-size: .68rem !important; }
+    .ava-guide-action { align-self: center; white-space: nowrap; }
+
     .bar-list { display: grid; gap: 12px; }
     .bar-row { display: grid; grid-template-columns: minmax(90px, 150px) minmax(60px, 1fr) auto; gap: 10px; align-items: center; font-size: .74rem; }
     .bar-track { height: 8px; background: #ece7dd; border-radius: 99px; overflow: hidden; }
@@ -396,6 +416,8 @@
       .invoice-row { grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 8px; }
       .field, .field.span-3, .field.span-6, .field.span-8 { grid-column: span 12; }
       .search { max-width: none; }
+      .ava-page-guide { grid-template-columns: auto minmax(0,1fr); }
+      .ava-guide-action { grid-column: 2; justify-self: start; }
     }
     @media (max-width: 560px) {
       body { font-size: 15px; }
@@ -414,6 +436,8 @@
       .drawer-body { padding: 16px 14px 60px; }
       .drawer-head { padding: 14px 14px; }
       .org-card { width: 160px; }
+      .ava-guide-steps { grid-template-columns: 1fr; }
+      .ava-page-guide { gap: 10px; padding: 13px; }
     }
     @media (prefers-reduced-motion: reduce) {
       * { transition: none !important; scroll-behavior: auto !important; }
@@ -448,7 +472,7 @@
         <button class="nav-btn" data-page="session"><span class="nav-icon" aria-hidden="true">⇅</span>Session data</button>
       </nav>
       <div class="sidebar-footer">
-        <p class="storage-state"><strong>Browser-local storage</strong><span id="last-saved">Not saved yet</span></p>
+        <p class="storage-state"><strong>Autosaved in this browser</strong><span id="last-saved">Preparing save…</span></p>
       </div>
     </aside>
 
@@ -756,14 +780,14 @@
           <div class="page-header">
             <div>
               <span class="eyebrow">Persistence · Export · Import</span>
-              <h1 id="session-title">Your session lives only in this browser.</h1>
-              <p>Nothing is transmitted anywhere. To share a test session with Jack, export it and send the file yourself.</p>
+              <h1 id="session-title">Keep the week’s work safe.</h1>
+              <p>Every change is saved automatically in this browser. Up to seven daily recovery copies are also kept here. Export a full-session backup before changing computers or browsers.</p>
             </div>
           </div>
 
           <div class="banner warn">
             <span aria-hidden="true">⚠</span>
-            <div class="banner-body"><strong>Clearing your browser data deletes this session permanently.</strong> Private/incognito windows, "clear site data", and some privacy extensions will remove it. Different browsers, devices and profiles each hold a separate, unrelated session. Export before you switch.</div>
+            <div class="banner-body"><strong>Use the same computer and browser throughout the week.</strong> Closing the tab or restarting the computer does not normally erase the work. Private/incognito windows, clearing site data, or some privacy extensions can remove it. Download Full session JSON at the end of each day as a separate recovery copy.</div>
           </div>
 
           <div class="dashboard-grid">
@@ -892,6 +916,7 @@
     const APP_ID = 'costa-construction-os';
     const SCHEMA_VERSION = 3;
     const STORAGE_KEY = 'costa-construction-os.v3';
+    const BACKUP_KEY = 'costa-construction-os.v3.daily-backups';
     const LEGACY_KEYS = ['costa-construction-os.v2', 'costaConstructionOS.v1'];
     const UNKNOWN = 'Not configured';
 
@@ -1233,10 +1258,35 @@
     let storageAvailable = true;
     let storageNote = '';
 
+    function saveDailyBackup() {
+      const today = new Date().toISOString().slice(0, 10);
+      let backups = [];
+      try {
+        backups = JSON.parse(localStorage.getItem(BACKUP_KEY) || '[]');
+        if (!Array.isArray(backups)) backups = [];
+      } catch (e) { backups = []; }
+      const snapshot = { date:today, savedAt:state.savedAt, schemaVersion:SCHEMA_VERSION, data:state };
+      backups = backups.filter(b => b && b.date !== today && b.schemaVersion === SCHEMA_VERSION);
+      backups.push(snapshot);
+      backups = backups.sort((a, b) => String(a.date).localeCompare(String(b.date))).slice(-7);
+      localStorage.setItem(BACKUP_KEY, JSON.stringify(backups));
+    }
+
+    function latestDailyBackup() {
+      try {
+        const backups = JSON.parse(localStorage.getItem(BACKUP_KEY) || '[]');
+        if (!Array.isArray(backups)) return null;
+        const valid = backups.filter(b => b && b.schemaVersion === SCHEMA_VERSION && b.data &&
+          Array.isArray(b.data.invoices) && Array.isArray(b.data.priorities) && Array.isArray(b.data.feedback));
+        return valid.sort((a, b) => String(b.savedAt || b.date).localeCompare(String(a.savedAt || a.date)))[0] || null;
+      } catch (e) { return null; }
+    }
+
     function save() {
       state.savedAt = nowIso();
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify({ app:APP_ID, schemaVersion:SCHEMA_VERSION, data:state }));
+        saveDailyBackup();
         storageAvailable = true; storageNote = '';
       } catch (err) {
         storageAvailable = false;
@@ -1255,6 +1305,11 @@
       try { raw = localStorage.getItem(STORAGE_KEY); }
       catch (err) { storageAvailable = false; storageNote = 'Browser storage is unavailable in this context, so nothing can be persisted. Export the session before you close the tab.'; return seedState(); }
       if (!raw) {
+        const backup = latestDailyBackup();
+        if (backup) {
+          storageNote = 'The main browser record was missing, so the most recent daily browser backup was restored.';
+          return normalizeState(backup.data);
+        }
         try {
           for (const k of LEGACY_KEYS) {
             if (localStorage.getItem(k)) {
@@ -1927,10 +1982,15 @@
       if (!state.invoices.length) {
         $('#ava-briefing').innerHTML =
           '<section class="ava" aria-labelledby="ava-h"><div class="ava-head"><div style="display:flex;gap:12px;align-items:flex-start">' +
-          '<div class="ava-mark" aria-hidden="true">AVA</div><div><h2 id="ava-h">Ready for Alex\'s first invoice</h2>' +
-          '<p class="ava-sub">This session is empty. No vendor, project, invoice, amount, risk, exception, activity, priority, or approval has been preloaded.</p></div></div>' +
+          '<div class="ava-mark" aria-hidden="true">AVA</div><div><h2 id="ava-h">Alex\'s first-week checklist</h2>' +
+          '<p class="ava-sub">The workflow is ready, but no invented company records are loaded. Use actual invoices to build the dashboard.</p></div></div>' +
           '<button class="btn btn-primary" data-go="intake">Enter first invoice</button></div>' +
-          '<p class="ava-guard"><strong>What happens next.</strong> Dashboard totals and alerts appear only after an invoice is entered in this browser. Nothing shown here claims to be connected Costa company data.</p></section>';
+          '<div class="ava-sections">' +
+            '<div class="ava-block"><h3>1 · Start</h3><p>Enter one actual invoice and create the record.</p></div>' +
+            '<div class="ava-block"><h3>2 · Test</h3><p>Use the role selector to move it through each approval stage.</p></div>' +
+            '<div class="ava-block"><h3>3 · Correct</h3><p>Record what does not match Costa reality on the Feedback page.</p></div>' +
+            '<div class="ava-block"><h3>4 · Protect</h3><p>Confirm the save status and export a full-session backup each day.</p></div>' +
+          '</div><p class="ava-guard"><strong>Automatic saving.</strong> Changes and daily recovery copies stay in this browser. Use the same computer and browser next week, and export before switching.</p></section>';
         $('#kpi-grid').innerHTML = '<div class="card card-pad" style="grid-column:1/-1"><div class="empty"><strong>No invoice data yet</strong>Use Invoice Intake to enter the first actual record. Metrics will remain blank until then.</div></div>';
         $('#bottleneck-list').innerHTML = '<div class="empty">No invoices entered.</div>';
         $('#project-risks').innerHTML = '<div class="empty">No project risk calculated. Risk appears only from invoices entered here.</div>';
@@ -2132,14 +2192,18 @@
     /* ---------------- Session / storage ---------------- */
     function renderStorageInfo() {
       const el = $('#storage-info'); if (!el) return;
-      let bytes = 0;
-      try { const raw = localStorage.getItem(STORAGE_KEY); bytes = raw ? new Blob([raw]).size : 0; } catch (e) { bytes = 0; }
+      let bytes = 0, backupCount = 0;
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY); bytes = raw ? new Blob([raw]).size : 0;
+        const backups = JSON.parse(localStorage.getItem(BACKUP_KEY) || '[]'); backupCount = Array.isArray(backups) ? backups.length : 0;
+      } catch (e) { bytes = 0; backupCount = 0; }
       el.innerHTML =
         '<div><span class="k">Storage key</span><span class="v">' + esc(STORAGE_KEY) + '</span></div>' +
         '<div><span class="k">Schema version</span><span class="v">' + SCHEMA_VERSION + '</span></div>' +
         '<div><span class="k">Status</span><span class="v">' + (storageAvailable ? 'Writable' : 'UNAVAILABLE') + '</span></div>' +
         '<div><span class="k">Approx. size</span><span class="v">' + (bytes ? (bytes / 1024).toFixed(1) + ' KB' : '—') + '</span></div>' +
         '<div><span class="k">Last saved</span><span class="v">' + esc(fmtDateTime(state.savedAt)) + '</span></div>' +
+        '<div><span class="k">Daily recovery copies</span><span class="v">' + backupCount + ' of 7 stored in this browser</span></div>' +
         '<div><span class="k">Records</span><span class="v">' + state.invoices.length + ' invoices, ' + state.priorities.length + ' priorities, ' + state.feedback.length + ' feedback</span></div>' +
         (storageNote ? '<div style="grid-column:1/-1;background:var(--amber-soft);border-color:#edd39a"><span class="k">Note</span><span class="v">' + esc(storageNote) + '</span></div>' : '');
     }
@@ -2790,6 +2854,7 @@
     function resetToEmpty() {
       if (!confirm('Erase this browser session and start empty?\n\nThis permanently discards the ' + plural(state.invoices.length,'invoice') + ', every decision, comment and audit event, ' + plural(state.priorities.length,'priority','priorities') + ' and ' + plural(state.feedback.length,'feedback entry','feedback entries') + ' saved in this browser.\n\nExport first if you want to keep them.')) return;
       const keepActor = state.actorId;
+      try { localStorage.removeItem(BACKUP_KEY); } catch (e) { /* storage warning is handled by save */ }
       state = seedState(); state.actorId = keepActor;
       save(); renderAll(); renderActorSelect();
       toast('Clean empty session started.');
@@ -2797,6 +2862,86 @@
 
     /* ---------------- Navigation & bootstrap ---------------- */
     const PAGES = ['dashboard','intake','queue','exceptions','organization','priorities','feedback','session'];
+    const PAGE_GUIDES = {
+      dashboard: {
+        title:'AVA guide — Start here',
+        intro:'Use this page as the daily overview after invoices have been entered.',
+        steps:['For the first invoice, go to Invoice Intake.','Return here to see totals, delays, exceptions and activity from only the records you entered.','Open anything requiring attention and record the next human decision.'],
+        note:'Recommended path: Intake → Approval Queue → Exceptions → Feedback → Session backup.',
+        action:{ label:'Enter an invoice', go:'intake' }
+      },
+      intake: {
+        title:'AVA guide — Enter an invoice',
+        intro:'Copy the information from the actual invoice into this form.',
+        steps:['Enter the vendor, project, invoice number, amount and dates.','Check only the supporting documents that really exist. File selection records names only.','Choose the project approver, then select Create invoice record.'],
+        note:'Nothing is uploaded or read. Confirm every field before creating the record.',
+        action:{ label:'Start with vendor', focus:'#f-vendor' }
+      },
+      queue: {
+        title:'AVA guide — Make the next decision',
+        intro:'This is where invoices move from review to approval, hold, rejection or a request for information.',
+        steps:['Open an invoice row and read its validation checks, exceptions and AVA explanation.','Use Acting as at the top right to select the role responsible for the current stage.','Choose the decision and write a specific reason before confirming.'],
+        note:'AVA recommends; a human records every decision. If the queue is empty, enter an invoice first.',
+        action:{ label:'Enter another invoice', go:'intake' }
+      },
+      exceptions: {
+        title:'AVA guide — Clear what is blocking progress',
+        intro:'Exceptions explain what is missing, wrong or risky and which role owns the next action.',
+        steps:['Find the open exception and note its owner role and required evidence.','Switch Acting as to that owner role, then open the related invoice.','Record the evidence and rationale. Bank-change controls require two different role actions.'],
+        note:'Do not mark an exception resolved unless the required evidence actually exists.',
+        action:{ label:'Open approval queue', go:'queue' }
+      },
+      organization: {
+        title:'AVA guide — Compare the model with Costa reality',
+        intro:'This page is a proposed operating model, not a claim about the current company.',
+        steps:['Review the executive, department and AI responsibility structure.','Identify roles Costa combines, does not have or assigns differently.','Record every mismatch on the Feedback page so the model can be corrected.'],
+        note:'Do not treat an unlabeled role or department as approved company structure.',
+        action:{ label:'Record organization feedback', go:'feedback' }
+      },
+      priorities: {
+        title:'AVA guide — Track the work that comes next',
+        intro:'Use priorities for real follow-up work discovered while testing invoices.',
+        steps:['Add a clear task with the outcome you want.','Assign an owner, urgency, status and current progress.','Update it during the week and record the decision or dependency holding it up.'],
+        note:'Priorities save automatically with the rest of this session.',
+        action:{ label:'Add a priority', click:'#add-priority' }
+      },
+      feedback: {
+        title:'AVA guide — Teach us how Costa actually works',
+        intro:'Capture corrections while the invoice and decision are still fresh.',
+        steps:['Select the area and related invoice when one applies.','Explain what matches, what is missing or what is wrong.','Save the feedback; export it from Session data at the end of the day.'],
+        note:'Specific examples are more useful than general reactions.',
+        action:{ label:'Start feedback', focus:'#fb-sense' }
+      },
+      session: {
+        title:'AVA guide — Protect the week\'s work',
+        intro:'Changes save automatically. Use this page to verify saving and create a backup.',
+        steps:['Check the save status before closing the browser.','Download Full session JSON at the end of each day as a recovery copy.','Use Import session to restore that file if you ever change browsers or computers.'],
+        note:'The same browser should reopen this work next week. Clearing site data can still remove the local copy.',
+        action:{ label:'Continue with invoices', go:'intake' }
+      }
+    };
+
+    function renderAvaPageGuide(page) {
+      $$('.ava-page-guide').forEach(el => el.remove());
+      const host = $('#page-' + page);
+      const guide = PAGE_GUIDES[page];
+      if (!host || !guide) return;
+      const el = document.createElement('section');
+      el.className = 'ava-page-guide';
+      el.setAttribute('aria-labelledby', 'ava-guide-' + page);
+      const action = guide.action || {};
+      const actionAttrs = action.go ? ' data-go="' + esc(action.go) + '"'
+        : action.focus ? ' data-guide-focus="' + esc(action.focus) + '"'
+        : action.click ? ' data-guide-click="' + esc(action.click) + '"' : '';
+      el.innerHTML = '<div class="ava-mark" aria-hidden="true">AVA</div>' +
+        '<div class="ava-guide-copy"><h2 id="ava-guide-' + esc(page) + '">' + esc(guide.title) + '</h2>' +
+        '<p>' + esc(guide.intro) + '</p><div class="ava-guide-steps">' +
+        guide.steps.map(step => '<div class="ava-guide-step">' + esc(step) + '</div>').join('') +
+        '</div><p class="ava-guide-note"><strong>Remember:</strong> ' + esc(guide.note) + '</p></div>' +
+        '<button class="btn btn-primary ava-guide-action" type="button"' + actionAttrs + '>' + esc(action.label || 'Continue') + '</button>';
+      const header = host.querySelector('.page-header');
+      if (header) header.insertAdjacentElement('afterend', el); else host.prepend(el);
+    }
 
     function navigate(page) {
       if (!PAGES.includes(page)) page = 'dashboard';
@@ -2818,6 +2963,7 @@
     }
 
     function renderPage(page) {
+      renderAvaPageGuide(page);
       if (page === 'dashboard') renderDashboard();
       if (page === 'intake') renderRoad('#intake-road');
       if (page === 'queue') renderQueue();
@@ -2875,6 +3021,18 @@
       $('#invoice-search').addEventListener('input', renderQueue);
 
       document.addEventListener('click', e => {
+        const guideFocus = e.target.closest('[data-guide-focus]');
+        if (guideFocus) {
+          const target = $(guideFocus.dataset.guideFocus);
+          if (target) { target.scrollIntoView({ behavior:'smooth', block:'center' }); setTimeout(() => target.focus(), 250); }
+          return;
+        }
+        const guideClick = e.target.closest('[data-guide-click]');
+        if (guideClick) {
+          const target = $(guideClick.dataset.guideClick);
+          if (target) target.click();
+          return;
+        }
         const inv = e.target.closest('[data-invoice]');
         if (inv) { renderDrawer(inv.dataset.invoice); return; }
         const go = e.target.closest('[data-go]');
